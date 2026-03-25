@@ -18,12 +18,11 @@ declare namespace NodeJS {
 
     // AWS S3
     S3_BUCKET_NAME: string;
-    S3_BUCKET_REGION: string;
 
     // AWS DynamoDB
-    DYNAMODB_USERS_TABLE: string;
-    DYNAMODB_EVALUATIONS_TABLE: string;
-    DYNAMODB_RATE_LIMITS_TABLE: string;
+    DYNAMODB_TABLE_USERS: string;
+    DYNAMODB_TABLE_EVALUATIONS: string;
+    DYNAMODB_TABLE_RATE_LIMITS: string;
 
     // Rate Limiting
     RATE_LIMIT_MAX_REQUESTS: string;
