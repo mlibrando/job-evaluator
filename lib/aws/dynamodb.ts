@@ -52,7 +52,7 @@ export async function getUser(userId: string): Promise<User | null> {
     const result = await docClient.send(
       new GetCommand({
         TableName: TABLES.USERS,
-        Key: { id: userId },
+        Key: { userId: userId },
       })
     );
     return result.Item as User | null;
@@ -77,7 +77,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 
 export async function updateUser(
   userId: string,
-  updates: Partial<Omit<User, 'id' | 'createdAt'>>
+  updates: Partial<Omit<User, 'userId' | 'createdAt'>>
 ): Promise<User> {
   return withAWSErrorHandling('DynamoDB.updateUser', async () => {
     const updateExpression: string[] = [];
@@ -98,7 +98,7 @@ export async function updateUser(
     const result = await docClient.send(
       new UpdateCommand({
         TableName: TABLES.USERS,
-        Key: { id: userId },
+        Key: { userId: userId },
         UpdateExpression: `SET ${updateExpression.join(', ')}`,
         ExpressionAttributeNames: expressionAttributeNames,
         ExpressionAttributeValues: expressionAttributeValues,
@@ -115,7 +115,7 @@ export async function deleteUser(userId: string): Promise<void> {
     await docClient.send(
       new DeleteCommand({
         TableName: TABLES.USERS,
-        Key: { id: userId },
+        Key: { userId: userId },
       })
     );
   });

@@ -1,5 +1,5 @@
 export interface User {
-  id: string;
+  userId: string;
   email: string;
   name?: string;
   createdAt: string;
@@ -7,7 +7,7 @@ export interface User {
 }
 
 export interface UserSession {
-  id: string;
+  userId: string;
   email: string;
   name?: string;
 }
