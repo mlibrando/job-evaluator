@@ -26,9 +26,9 @@ export const docClient = DynamoDBDocumentClient.from(client);
 
 // Table names
 const TABLES = {
-  USERS: process.env.DYNAMODB_USERS_TABLE!,
-  EVALUATIONS: process.env.DYNAMODB_EVALUATIONS_TABLE!,
-  RATE_LIMITS: process.env.DYNAMODB_RATE_LIMITS_TABLE!,
+  USERS: process.env.DYNAMODB_TABLE_USERS!,
+  EVALUATIONS: process.env.DYNAMODB_TABLE_EVALUATIONS!,
+  RATE_LIMITS: process.env.DYNAMODB_TABLE_RATE_LIMITS!,
 };
 
 // ============================================
