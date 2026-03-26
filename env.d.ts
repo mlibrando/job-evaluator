@@ -7,6 +7,8 @@ declare namespace NodeJS {
     // Authentication
     NEXTAUTH_URL: string;
     NEXTAUTH_SECRET: string;
+    GOOGLE_CLIENT_ID: string;
+    GOOGLE_CLIENT_SECRET: string;
 
     // Anthropic Claude API
     ANTHROPIC_API_KEY: string;
