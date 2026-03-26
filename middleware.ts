@@ -1,11 +1,29 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { auth } from '@/lib/auth';
 
-export function middleware(request: NextRequest) {
-  // Middleware will be expanded in future PRs for:
-  // - Authentication checks
-  // - Rate limiting
-  // - Request validation
+export async function middleware(request: NextRequest) {
+  const session = await auth();
+
+  // Protected routes that require authentication
+  const protectedPaths = ['/dashboard', '/evaluate', '/history'];
+  const isProtectedPath = protectedPaths.some((path) =>
+    request.nextUrl.pathname.startsWith(path)
+  );
+
+  // Redirect to login if accessing protected route without session
+  if (isProtectedPath && !session) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Redirect to dashboard if accessing login while authenticated
+  if (request.nextUrl.pathname === '/login' && session) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // Rate limiting will be added in PR 4
 
   return NextResponse.next();
 }
