@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { auth } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function middleware(request: NextRequest) {
   const session = await auth();
@@ -23,7 +24,58 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // Rate limiting will be added in PR 4
+  // Rate limiting for API routes and evaluation endpoints
+  const rateLimitedPaths = ['/api/evaluate', '/api/resume'];
+  const shouldRateLimit = rateLimitedPaths.some((path) =>
+    request.nextUrl.pathname.startsWith(path)
+  );
+
+  if (shouldRateLimit && session?.user?.id) {
+    try {
+      const rateLimitResult = await checkRateLimit(session.user.id);
+
+      // Add rate limit headers to response
+      const response = NextResponse.next();
+      response.headers.set('X-RateLimit-Limit', rateLimitResult.limit.toString());
+      response.headers.set('X-RateLimit-Remaining', rateLimitResult.remaining.toString());
+      response.headers.set('X-RateLimit-Reset', rateLimitResult.reset.toString());
+
+      if (!rateLimitResult.success) {
+        const retryAfter = Math.ceil((rateLimitResult.reset - Date.now()) / 1000);
+
+        return new NextResponse(
+          JSON.stringify({
+            success: false,
+            error: {
+              code: 'RATE_LIMIT_EXCEEDED',
+              message: 'Too many requests. Please try again later.',
+              details: {
+                limit: rateLimitResult.limit,
+                remaining: rateLimitResult.remaining,
+                reset: rateLimitResult.reset,
+                retryAfter,
+              },
+            },
+          }),
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+              'X-RateLimit-Remaining': '0',
+              'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+              'Retry-After': retryAfter.toString(),
+            },
+          }
+        );
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Rate limit check failed:', error);
+      // Continue on rate limit check failure to avoid blocking requests
+    }
+  }
 
   return NextResponse.next();
 }

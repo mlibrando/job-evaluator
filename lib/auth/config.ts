@@ -32,7 +32,7 @@ export const authConfig: NextAuthConfig = {
       if (!existingUser) {
         const now = new Date().toISOString();
         existingUser = await createUser({
-          id: crypto.randomUUID(),
+          userId: crypto.randomUUID(),
           email: user.email,
           name: user.name || undefined,
           createdAt: now,
@@ -47,7 +47,7 @@ export const authConfig: NextAuthConfig = {
         // Fetch user from database to get our internal ID
         const dbUser = await getUserByEmail(user.email!);
         if (dbUser) {
-          token.id = dbUser.id;
+          token.id = dbUser.userId;
           token.email = dbUser.email;
           token.name = dbUser.name;
         }

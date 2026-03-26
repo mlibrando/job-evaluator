@@ -13,10 +13,10 @@ export const TABLE_SCHEMAS = {
   USERS: {
     TableName: 'job-evaluator-users',
     KeySchema: [
-      { AttributeName: 'id', KeyType: 'HASH' }, // Partition key
+      { AttributeName: 'userId', KeyType: 'HASH' }, // Partition key
     ],
     AttributeDefinitions: [
-      { AttributeName: 'id', AttributeType: 'S' },
+      { AttributeName: 'userId', AttributeType: 'S' },
       { AttributeName: 'email', AttributeType: 'S' },
     ],
     GlobalSecondaryIndexes: [
@@ -102,10 +102,10 @@ export const CREATE_TABLE_COMMANDS = {
 aws dynamodb create-table \\
   --table-name job-evaluator-users \\
   --attribute-definitions \\
-    AttributeName=id,AttributeType=S \\
+    AttributeName=userId,AttributeType=S \\
     AttributeName=email,AttributeType=S \\
   --key-schema \\
-    AttributeName=id,KeyType=HASH \\
+    AttributeName=userId,KeyType=HASH \\
   --billing-mode PAY_PER_REQUEST \\
   --global-secondary-indexes \\
     '[{
