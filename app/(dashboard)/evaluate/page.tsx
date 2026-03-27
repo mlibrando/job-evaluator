@@ -218,7 +218,7 @@ export default function EvaluatePage() {
               disabled={isSubmitting}
               rows={12}
               required
-              helperText={`${formData.jobDescription.length}/10,000 characters (minimum 50)`}
+              helperText={`${formData.jobDescription.length}/3,000 characters (minimum 50)`}
             />
           </CardContent>
         </Card>
