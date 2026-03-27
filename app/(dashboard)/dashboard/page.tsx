@@ -96,7 +96,7 @@ export default async function DashboardPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-600 dark:text-zinc-400">Rate limit:</span>
-                <span className="font-medium text-zinc-900 dark:text-white">100/hour</span>
+                <span className="font-medium text-zinc-900 dark:text-white">10/hour</span>
               </div>
             </div>
           </CardContent>
@@ -111,10 +111,10 @@ export default async function DashboardPage() {
         <CardContent>
           <div className="space-y-4">
             <div className="flex gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-semibold text-sm">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-semibold text-sm">
                 1
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-zinc-900 dark:text-white">
                   Start a New Evaluation
                 </h4>
@@ -124,10 +124,10 @@ export default async function DashboardPage() {
               </div>
             </div>
             <div className="flex gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-semibold text-sm">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-semibold text-sm">
                 2
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-zinc-900 dark:text-white">
                   Get AI Analysis
                 </h4>
@@ -137,10 +137,10 @@ export default async function DashboardPage() {
               </div>
             </div>
             <div className="flex gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-semibold text-sm">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-semibold text-sm">
                 3
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-zinc-900 dark:text-white">
                   Review & Apply
                 </h4>
