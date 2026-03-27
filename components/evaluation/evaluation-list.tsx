@@ -132,21 +132,21 @@ export function EvaluationList({ evaluations }: EvaluationListProps) {
               href={`/evaluations/${evaluation.evaluationId}`}
               className="block"
             >
-              <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+              <Card className="h-full hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
                 <CardContent className="pt-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-zinc-900 dark:text-white mb-1 truncate">
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div className="flex-1 min-w-0 overflow-hidden">
+                      <h3 className="font-semibold text-zinc-900 dark:text-white mb-1 break-words line-clamp-2">
                         {evaluation.jobTitle}
                       </h3>
                       {evaluation.companyName && (
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400 truncate">
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400 break-words line-clamp-1">
                           {evaluation.companyName}
                         </p>
                       )}
                     </div>
                     <div
-                      className={`flex-shrink-0 ml-3 w-12 h-12 rounded-full ${getScoreBgColor(
+                      className={`flex-shrink-0 w-12 h-12 rounded-full ${getScoreBgColor(
                         evaluation.analysis.overallScore
                       )} flex items-center justify-center`}
                     >
@@ -160,13 +160,13 @@ export function EvaluationList({ evaluations }: EvaluationListProps) {
                     </div>
                   </div>
 
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-4">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-4 break-words">
                     {evaluation.analysis.summary}
                   </p>
 
                   <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-500">
-                    <span>{formatDate(evaluation.createdAt)}</span>
-                    <span className="flex items-center gap-1">
+                    <span className="truncate">{formatDate(evaluation.createdAt)}</span>
+                    <span className="flex items-center gap-1 flex-shrink-0">
                       <svg
                         className="w-4 h-4"
                         fill="none"
