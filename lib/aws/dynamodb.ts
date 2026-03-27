@@ -137,12 +137,15 @@ export async function createEvaluation(evaluation: Evaluation): Promise<Evaluati
   });
 }
 
-export async function getEvaluation(evaluationId: string): Promise<Evaluation | null> {
+export async function getEvaluation(evaluationId: string, userId: string): Promise<Evaluation | null> {
   return withAWSErrorHandling('DynamoDB.getEvaluation', async () => {
     const result = await docClient.send(
       new GetCommand({
         TableName: TABLES.EVALUATIONS,
-        Key: { id: evaluationId },
+        Key: {
+          userId: userId,
+          evaluationId: evaluationId
+        },
       })
     );
     return result.Item as Evaluation | null;
@@ -176,12 +179,15 @@ export async function getUserEvaluations(
   });
 }
 
-export async function deleteEvaluation(evaluationId: string): Promise<void> {
+export async function deleteEvaluation(evaluationId: string, userId: string): Promise<void> {
   return withAWSErrorHandling('DynamoDB.deleteEvaluation', async () => {
     await docClient.send(
       new DeleteCommand({
         TableName: TABLES.EVALUATIONS,
-        Key: { id: evaluationId },
+        Key: {
+          userId: userId,
+          evaluationId: evaluationId
+        },
       })
     );
   });
