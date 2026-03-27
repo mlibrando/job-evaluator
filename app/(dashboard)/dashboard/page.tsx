@@ -12,8 +12,14 @@ export default async function DashboardPage() {
   }
 
   // Check if user has any evaluations
-  const { evaluations } = await getUserEvaluations(session.user.id);
-  const hasEvaluations = evaluations.length > 0;
+  let hasEvaluations = false;
+  try {
+    const { evaluations } = await getUserEvaluations(session.user.id);
+    hasEvaluations = evaluations.length > 0;
+  } catch (error) {
+    console.error('Failed to fetch evaluations:', error);
+    // Default to false, show the button for new users
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -23,7 +29,7 @@ export default async function DashboardPage() {
           Welcome back, {session.user?.name || session.user?.email}!
         </h1>
         <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Evaluate job postings and track your application progress.
+          Evaluate job postings and see if you match.
         </p>
       </div>
 
