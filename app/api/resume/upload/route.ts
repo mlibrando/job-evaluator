@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { uploadFile, generateResumeKey } from '@/lib/aws/s3';
+import { resumeFileSchema } from '@/lib/validation';
 
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
@@ -48,36 +49,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'INVALID_FILE_TYPE',
-            message: 'Invalid file type. Allowed types: PDF, DOC, DOCX, TXT',
-            details: {
-              allowedTypes: ALLOWED_MIME_TYPES,
-              receivedType: file.type,
-            },
-          },
-        },
-        { status: 400 }
-      );
-    }
+    // Validate file with Zod
+    const validationResult = resumeFileSchema.safeParse({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
 
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.map(err => ({
+        field: err.path.join('.'),
+        message: err.message,
+      }));
+
       return NextResponse.json(
         {
           success: false,
           error: {
-            code: 'FILE_TOO_LARGE',
-            message: `File size exceeds maximum of ${MAX_FILE_SIZE / 1024 / 1024}MB`,
-            details: {
-              maxSize: MAX_FILE_SIZE,
-              receivedSize: file.size,
-            },
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid file',
+            details: { errors },
           },
         },
         { status: 400 }

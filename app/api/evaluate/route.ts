@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { analyzeJobPost } from '@/lib/ai';
 import { createEvaluation } from '@/lib/aws/dynamodb';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { evaluateRequestSchema } from '@/lib/validation';
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
@@ -53,21 +54,30 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { jobTitle, jobDescription, companyName, resumeKey } = body;
 
-    // Validate required fields
-    if (!jobTitle || !jobDescription || !resumeKey) {
+    // Validate request body with Zod
+    const validationResult = evaluateRequestSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.map(err => ({
+        field: err.path.join('.'),
+        message: err.message,
+      }));
+
       return NextResponse.json(
         {
           success: false,
           error: {
-            code: 'INVALID_REQUEST',
-            message: 'Missing required fields: jobTitle, jobDescription, resumeKey',
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid request data',
+            details: { errors },
           },
         },
         { status: 400 }
       );
     }
+
+    const { jobTitle, jobDescription, companyName, resumeKey } = validationResult.data;
 
     // Security: Verify the resume belongs to the user
     if (!resumeKey.startsWith(`resumes/${session.user.id}/`)) {
