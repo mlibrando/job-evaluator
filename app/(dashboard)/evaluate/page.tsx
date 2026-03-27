@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Card, CardHeader, CardTitle, CardContent, Input, Textarea, Alert } from '@/components/ui';
 import { ResumeUpload } from '@/components/evaluation/resume-upload';
-import type { CreateEvaluationResponse } from '@/types/evaluation';
 
 export default function EvaluatePage() {
   const router = useRouter();
@@ -54,8 +53,24 @@ export default function EvaluatePage() {
       setError('Job title is required');
       return;
     }
+    if (formData.jobTitle.length > 200) {
+      setError('Job title must be less than 200 characters');
+      return;
+    }
     if (!formData.jobDescription.trim()) {
       setError('Job description is required');
+      return;
+    }
+    if (formData.jobDescription.length < 50) {
+      setError('Job description must be at least 50 characters');
+      return;
+    }
+    if (formData.jobDescription.length > 5000) {
+      setError('Job description must be less than 5,000 characters');
+      return;
+    }
+    if (formData.companyName && formData.companyName.length > 100) {
+      setError('Company name must be less than 100 characters');
       return;
     }
     if (!resumeFile && !useExistingResume) {
@@ -183,6 +198,7 @@ export default function EvaluatePage() {
               onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
               disabled={isSubmitting}
               required
+              helperText={`${formData.jobTitle.length}/200 characters`}
             />
 
             <Input
@@ -191,6 +207,7 @@ export default function EvaluatePage() {
               value={formData.companyName}
               onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
               disabled={isSubmitting}
+              helperText={formData.companyName ? `${formData.companyName.length}/100 characters` : undefined}
             />
 
             <Textarea
@@ -201,7 +218,7 @@ export default function EvaluatePage() {
               disabled={isSubmitting}
               rows={12}
               required
-              helperText="Include requirements, responsibilities, and any other relevant information"
+              helperText={`${formData.jobDescription.length}/10,000 characters (minimum 50)`}
             />
           </CardContent>
         </Card>
