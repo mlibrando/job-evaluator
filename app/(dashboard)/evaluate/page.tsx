@@ -65,8 +65,8 @@ export default function EvaluatePage() {
       setError('Job description must be at least 50 characters');
       return;
     }
-    if (formData.jobDescription.length > 5000) {
-      setError('Job description must be less than 5,000 characters');
+    if (formData.jobDescription.length > 3000) {
+      setError('Job description must be less than 3,000 characters');
       return;
     }
     if (formData.companyName && formData.companyName.length > 100) {

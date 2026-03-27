@@ -12,7 +12,7 @@ export const evaluateRequestSchema = z.object({
   jobDescription: z
     .string()
     .min(50, 'Job description must be at least 50 characters')
-    .max(5000, 'Job description must be less than 5,000 characters')
+    .max(3000, 'Job description must be less than 3,000 characters')
     .trim(),
   companyName: z
     .string()
