@@ -41,7 +41,7 @@ export async function GET(
       );
     }
 
-    const evaluation = await getEvaluation(id);
+    const evaluation = await getEvaluation(id, session.user.id);
 
     if (!evaluation) {
       return NextResponse.json(
@@ -53,20 +53,6 @@ export async function GET(
           },
         },
         { status: 404 }
-      );
-    }
-
-    // Security: Verify the evaluation belongs to the user
-    if (evaluation.userId !== session.user.id) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'FORBIDDEN',
-            message: 'You do not have permission to access this evaluation',
-          },
-        },
-        { status: 403 }
       );
     }
 
@@ -131,7 +117,7 @@ export async function DELETE(
     }
 
     // Get evaluation first to verify ownership
-    const evaluation = await getEvaluation(id);
+    const evaluation = await getEvaluation(id, session.user.id);
 
     if (!evaluation) {
       return NextResponse.json(
@@ -146,21 +132,7 @@ export async function DELETE(
       );
     }
 
-    // Security: Verify the evaluation belongs to the user
-    if (evaluation.userId !== session.user.id) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'FORBIDDEN',
-            message: 'You do not have permission to delete this evaluation',
-          },
-        },
-        { status: 403 }
-      );
-    }
-
-    await deleteEvaluation(id);
+    await deleteEvaluation(id, session.user.id);
 
     return NextResponse.json({
       success: true,

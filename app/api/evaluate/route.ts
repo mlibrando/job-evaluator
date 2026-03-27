@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
 
     // Save evaluation to DynamoDB
     const evaluation = await createEvaluation({
-      id: crypto.randomUUID(),
+      evaluationId: crypto.randomUUID(),
       userId: session.user.id,
       jobTitle,
       jobDescription,
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        evaluationId: evaluation.id,
+        evaluationId: evaluation.evaluationId,
         analysis: evaluation.analysis,
         createdAt: evaluation.createdAt,
       },

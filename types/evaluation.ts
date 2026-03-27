@@ -1,5 +1,5 @@
 export interface Evaluation {
-  id: string;
+  evaluationId: string;
   userId: string;
   jobTitle: string;
   jobDescription: string;

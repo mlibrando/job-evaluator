@@ -13,9 +13,18 @@ export default async function DashboardPage() {
 
   // Check if user has any evaluations
   let hasEvaluations = false;
+  let totalEvaluations = 0;
+  let thisMonthEvaluations = 0;
+
   try {
     const { evaluations } = await getUserEvaluations(session.user.id);
     hasEvaluations = evaluations.length > 0;
+    totalEvaluations = evaluations.length;
+
+    // Count evaluations from this month
+    const now = new Date();
+    const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    thisMonthEvaluations = evaluations.filter(e => e.createdAt.startsWith(thisMonth)).length;
   } catch (error) {
     console.error('Failed to fetch evaluations:', error);
     // Default to false, show the button for new users
@@ -74,12 +83,20 @@ export default async function DashboardPage() {
             </p>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
+                <span className="text-zinc-600 dark:text-zinc-400">Total:</span>
+                <span className="font-medium text-zinc-900 dark:text-white">
+                  {totalEvaluations} {totalEvaluations === 1 ? 'evaluation' : 'evaluations'}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
                 <span className="text-zinc-600 dark:text-zinc-400">This month:</span>
-                <span className="font-medium text-zinc-900 dark:text-white">0 evaluations</span>
+                <span className="font-medium text-zinc-900 dark:text-white">
+                  {thisMonthEvaluations} {thisMonthEvaluations === 1 ? 'evaluation' : 'evaluations'}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-600 dark:text-zinc-400">Rate limit:</span>
-                <span className="font-medium text-zinc-900 dark:text-white">10/hour</span>
+                <span className="font-medium text-zinc-900 dark:text-white">100/hour</span>
               </div>
             </div>
           </CardContent>
