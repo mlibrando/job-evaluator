@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHash } from 'crypto';
 import { auth } from '@/lib/auth';
 import { analyzeJobPost } from '@/lib/ai';
-import { createEvaluation } from '@/lib/aws/dynamodb';
+import {
+  createEvaluation,
+  getEvaluation,
+  isConditionalCheckFailure,
+} from '@/lib/aws/dynamodb';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { evaluateRequestSchema } from '@/lib/validation';
 
@@ -30,6 +35,23 @@ async function extractResumeText(resumeKey: string): Promise<string> {
   }
 
   return bodyContents;
+}
+
+/**
+ * Derive a stable evaluation ID from a user's idempotency key.
+ *
+ * The evaluations table is keyed by (userId, evaluationId), so making the ID a
+ * deterministic function of the key turns the idempotency lookup into an
+ * ordinary point read — no secondary index or key-mapping table needed.
+ *
+ * The userId is hashed in, so one user's key can never resolve to another's
+ * evaluation.
+ */
+function deriveEvaluationId(userId: string, idempotencyKey: string): string {
+  return createHash('sha256')
+    .update(`${userId}:${idempotencyKey}`)
+    .digest('hex')
+    .slice(0, 32);
 }
 
 /**
@@ -77,7 +99,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { jobTitle, jobDescription, companyName, resumeKey } = validationResult.data;
+    const { jobTitle, jobDescription, companyName, resumeKey, idempotencyKey } =
+      validationResult.data;
 
     // Security: Verify the resume belongs to the user
     if (!resumeKey.startsWith(`resumes/${session.user.id}/`)) {
@@ -91,6 +114,28 @@ export async function POST(request: NextRequest) {
         },
         { status: 403 }
       );
+    }
+
+    const evaluationId = idempotencyKey
+      ? deriveEvaluationId(session.user.id, idempotencyKey)
+      : crypto.randomUUID();
+
+    // Idempotency: a repeat of a key we've already served returns the stored
+    // result. Checked before any AI call so retries aren't re-billed.
+    if (idempotencyKey) {
+      const existing = await getEvaluation(evaluationId, session.user.id);
+
+      if (existing) {
+        return NextResponse.json({
+          success: true,
+          data: {
+            evaluationId: existing.evaluationId,
+            analysis: existing.analysis,
+            createdAt: existing.createdAt,
+            idempotent: true,
+          },
+        });
+      }
     }
 
     // Extract text from resume
@@ -108,26 +153,58 @@ export async function POST(request: NextRequest) {
     const resumeUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${resumeKey}`;
 
     // Save evaluation to DynamoDB
-    const evaluation = await createEvaluation({
-      evaluationId: crypto.randomUUID(),
-      userId: session.user.id,
-      jobTitle,
-      jobDescription,
-      companyName,
-      resumeUrl,
-      resumeKey,
-      analysis: {
-        overallScore: analysis.overallScore,
-        matchPercentage: analysis.matchPercentage,
-        strengths: analysis.strengths,
-        weaknesses: analysis.weaknesses,
-        missingSkills: analysis.missingSkills,
-        recommendations: analysis.recommendations,
-        summary: analysis.summary,
-        keyInsights: analysis.keyInsights,
-      },
-      createdAt: new Date().toISOString(),
-    });
+    let evaluation;
+
+    try {
+      evaluation = await createEvaluation(
+        {
+          evaluationId,
+          userId: session.user.id,
+          jobTitle,
+          jobDescription,
+          companyName,
+          resumeUrl,
+          resumeKey,
+          analysis: {
+            overallScore: analysis.overallScore,
+            matchPercentage: analysis.matchPercentage,
+            subscores: analysis.subscores,
+            requirements: analysis.requirements,
+            assessments: analysis.assessments,
+            strengths: analysis.strengths,
+            weaknesses: analysis.weaknesses,
+            missingSkills: analysis.missingSkills,
+            recommendations: analysis.recommendations,
+            summary: analysis.summary,
+            keyInsights: analysis.keyInsights,
+          },
+          createdAt: new Date().toISOString(),
+          ...(idempotencyKey ? { idempotencyKey } : {}),
+        },
+        { failIfExists: Boolean(idempotencyKey) }
+      );
+    } catch (error) {
+      // Concurrent double-submit: another request with the same key won the
+      // race between our read and our write. Return its result rather than
+      // failing — that's the outcome the caller asked for.
+      if (idempotencyKey && isConditionalCheckFailure(error)) {
+        const winner = await getEvaluation(evaluationId, session.user.id);
+
+        if (winner) {
+          return NextResponse.json({
+            success: true,
+            data: {
+              evaluationId: winner.evaluationId,
+              analysis: winner.analysis,
+              createdAt: winner.createdAt,
+              idempotent: true,
+            },
+          });
+        }
+      }
+
+      throw error;
+    }
 
     return NextResponse.json({
       success: true,
