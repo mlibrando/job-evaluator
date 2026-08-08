@@ -4,12 +4,22 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button, Card, CardHeader, CardTitle, CardContent, Alert } from '@/components/ui';
-import type { Evaluation, MatchLevel, SubscoreBreakdown } from '@/types/evaluation';
+import type {
+  Evaluation,
+  MatchLevel,
+  RequirementCategory,
+  SubscoreBreakdown,
+} from '@/types/evaluation';
+import { getPresentCategories } from '@/lib/ai/scoring';
 
-const SUBSCORE_LABELS: { key: keyof SubscoreBreakdown; label: string }[] = [
-  { key: 'skillMatch', label: 'Skills' },
-  { key: 'experienceMatch', label: 'Experience' },
-  { key: 'domainFit', label: 'Domain' },
+const SUBSCORE_LABELS: {
+  key: keyof SubscoreBreakdown;
+  category: RequirementCategory;
+  label: string;
+}[] = [
+  { key: 'skillMatch', category: 'skill', label: 'Skills' },
+  { key: 'experienceMatch', category: 'experience', label: 'Experience' },
+  { key: 'domainFit', category: 'domain', label: 'Domain' },
 ];
 
 const MATCH_COLORS: Record<MatchLevel, string> = {
@@ -71,6 +81,13 @@ export function EvaluationResult({ evaluation }: EvaluationResultProps) {
     if (score >= 60) return 'bg-yellow-500';
     return 'bg-red-500';
   };
+
+  const assessedCategories = getPresentCategories(
+    evaluation.analysis.requirements ?? []
+  );
+  const visibleSubscores = SUBSCORE_LABELS.filter(({ category }) =>
+    assessedCategories.includes(category)
+  );
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -141,14 +158,14 @@ export function EvaluationResult({ evaluation }: EvaluationResultProps) {
       </Card>
 
       {/* Score Breakdown */}
-      {evaluation.analysis.subscores && (
+      {evaluation.analysis.subscores && visibleSubscores.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Score Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">
-              {SUBSCORE_LABELS.map(({ key, label }) => {
+              {visibleSubscores.map(({ key, label }) => {
                 const score = evaluation.analysis.subscores[key];
                 return (
                   <li key={key}>

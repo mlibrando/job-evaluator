@@ -9,6 +9,7 @@ import {
 } from '@/lib/aws/dynamodb';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { evaluateRequestSchema } from '@/lib/validation';
+import { ResumeExtractionError, extractResumeText } from '@/lib/resume/extract';
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
@@ -17,24 +18,22 @@ const s3Client = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
   },
 });
-
-/**
- * Extract text from resume file in S3
- */
-async function extractResumeText(resumeKey: string): Promise<string> {
+async function fetchResumeText(resumeKey: string): Promise<string> {
   const command = new GetObjectCommand({
     Bucket: process.env.S3_BUCKET_NAME!,
     Key: resumeKey,
   });
 
   const response = await s3Client.send(command);
-  const bodyContents = await response.Body?.transformToString();
+  const bytes = await response.Body?.transformToByteArray();
 
-  if (!bodyContents) {
+  if (!bytes || bytes.length === 0) {
     throw new Error('Failed to read resume file');
   }
 
-  return bodyContents;
+  const result = await extractResumeText(bytes);
+
+  return result.text;
 }
 
 /**
@@ -139,7 +138,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract text from resume
-    const resumeText = await extractResumeText(resumeKey);
+    const resumeText = await fetchResumeText(resumeKey);
 
     // Analyze with Claude
     const analysis = await analyzeJobPost({
@@ -216,6 +215,20 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Evaluation failed:', error);
+    
+    if (error instanceof ResumeExtractionError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     // Handle AI-specific errors
     if (error && typeof error === 'object' && 'code' in error) {

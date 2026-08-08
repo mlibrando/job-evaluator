@@ -11,6 +11,25 @@ The original implementation asked Claude for `overallScore` (0–100) directly, 
 
 The fix is to shrink what the model is asked to decide. A four-way classification with written anchors is a bounded choice with a criterion behind it; a number between 0 and 40 is not. Everything numeric moved into [`lib/ai/scoring.ts`](../lib/ai/scoring.ts), where it is inspectable, testable, and changeable without touching a prompt.
 
+## Before scoring: resume text extraction
+
+**PDF only.** [`lib/resume/extract.ts`](../lib/resume/extract.ts) parses the file with [`unpdf`](https://github.com/unjs/unpdf) and rejects anything it can't read.
+
+This exists because the original implementation read the S3 object with `transformToString()` — a raw byte→UTF-8 decode with no parsing. That silently broke on most PDFs:
+
+- Body text in a PDF lives in **`FlateDecode`-compressed content streams**, which decode to binary noise.
+- **URLs live in uncompressed link annotations**, so they survive as literal ASCII.
+
+The result was evaluations scored against a document containing four URLs and nothing else — and because the model was asked for a holistic number, the failure looked like a low score rather than a broken pipeline. Whether it worked came down to which tool produced the file: a Canva export leaked enough uncompressed text to pass, while a Google Docs export (`/Producer (Skia/PDF m152 Google Docs Renderer)`) did not. "ATS-friendly" is unrelated — that means *a real parser* can read it, which says nothing about raw bytes.
+
+Three rules the extractor enforces:
+
+1. **Work from bytes, never a decoded string.** `transformToString()` replaces invalid sequences with U+FFFD, which is lossy and irreversible — it destroys the data before it can be parsed. The route uses `transformToByteArray()`.
+2. **Verify the magic bytes (`%PDF-`), not the declared MIME type.** The browser-supplied type is untrusted, and filenames lie: one test file was a PDF carrying `/Title (Michael_Librando_Resume.docx)`.
+3. **Reject an unusable extraction instead of scoring it.** Under `MIN_USABLE_CHARS` (200) throws `NO_TEXT_FOUND` — typically a scanned or image-only PDF. The route returns this as a `400` with a fixable message, rather than spending two model calls to confidently score an empty document.
+
+DOC/DOCX are deliberately unsupported. `.docx` is a ZIP archive whose text sits in compressed `word/document.xml`; `.doc` is an OLE2 compound file. Both need format-specific parsers, and accepting them without one is how the original bug happened.
+
 ## The pipeline
 
 Two model calls per evaluation, orchestrated by `analyzeJobPost` in [`lib/ai/claude.ts`](../lib/ai/claude.ts).

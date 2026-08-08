@@ -48,14 +48,7 @@ export const resumeFileSchema = z.object({
     .number()
     .min(1, 'File must not be empty')
     .max(5 * 1024 * 1024, 'File size must be less than 5MB'),
-  type: z
-    .enum([
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/plain',
-    ])
-    .refine((val) => val, { message: 'File must be PDF, DOC, DOCX, or TXT' }),
+  type: z.literal('application/pdf', { message: 'File must be a PDF' }),
 });
 
 /**

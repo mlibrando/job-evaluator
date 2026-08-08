@@ -3,14 +3,12 @@ import { auth } from '@/lib/auth';
 import { uploadFile, generateResumeKey } from '@/lib/aws/s3';
 import { resumeFileSchema } from '@/lib/validation';
 
-const ALLOWED_MIME_TYPES = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'text/plain',
-];
+const PDF_SIGNATURE = [0x25, 0x50, 0x44, 0x46, 0x2d];
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+function hasPdfSignature(bytes: Uint8Array): boolean {
+  if (bytes.length < PDF_SIGNATURE.length) return false;
+  return PDF_SIGNATURE.every((byte, index) => bytes[index] === byte);
+}
 
 /**
  * POST /api/resume/upload
@@ -78,6 +76,20 @@ export async function POST(request: NextRequest) {
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
+    if (!hasPdfSignature(buffer)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INVALID_FILE_TYPE',
+            message:
+              'This file is not a valid PDF. Please upload a PDF resume.',
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     // Generate S3 key
     const key = generateResumeKey(session.user.id, file.name);
