@@ -125,16 +125,50 @@ export async function deleteUser(userId: string): Promise<void> {
 // Evaluation Operations
 // ============================================
 
-export async function createEvaluation(evaluation: Evaluation): Promise<Evaluation> {
+export interface CreateEvaluationOptions {
+  /**
+   * Reject the write if an evaluation with this key already exists, instead of
+   * overwriting it. Used by the idempotency path, where two concurrent requests
+   * can derive the same evaluationId and both miss the initial read.
+   *
+   * Note: the resulting AWSError carries the generic DYNAMODB_UPDATE_FAILED
+   * code — detect the conflict via `details.errorName === 'ConditionalCheckFailedException'`
+   * (see isConditionalCheckFailure below).
+   */
+  failIfExists?: boolean;
+}
+
+export async function createEvaluation(
+  evaluation: Evaluation,
+  options: CreateEvaluationOptions = {}
+): Promise<Evaluation> {
   return withAWSErrorHandling('DynamoDB.createEvaluation', async () => {
     await docClient.send(
       new PutCommand({
         TableName: TABLES.EVALUATIONS,
         Item: evaluation,
+        ...(options.failIfExists
+          ? { ConditionExpression: 'attribute_not_exists(evaluationId)' }
+          : {}),
       })
     );
     return evaluation;
   });
+}
+
+/**
+ * Whether an error from a `failIfExists` write was a lost race rather than a
+ * real failure. handleAWSError flattens ConditionalCheckFailedException into a
+ * generic update-failed code, so the original name is only in `details`.
+ */
+export function isConditionalCheckFailure(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'details' in error &&
+    (error as { details?: { errorName?: string } }).details?.errorName ===
+      'ConditionalCheckFailedException'
+  );
 }
 
 export async function getEvaluation(evaluationId: string, userId: string): Promise<Evaluation | null> {

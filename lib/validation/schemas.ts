@@ -24,6 +24,17 @@ export const evaluateRequestSchema = z.object({
     .string()
     .min(1, 'Resume key is required')
     .regex(/^resumes\/[a-f0-9-]+\/\d+-/, 'Invalid resume key format'),
+  // Optional. When supplied, a repeated request with the same key returns the
+  // stored evaluation instead of re-running the analysis.
+  idempotencyKey: z
+    .string()
+    .min(8, 'Idempotency key must be at least 8 characters')
+    .max(128, 'Idempotency key must be less than 128 characters')
+    .regex(
+      /^[A-Za-z0-9_-]+$/,
+      'Idempotency key may only contain letters, numbers, hyphens, and underscores'
+    )
+    .optional(),
 });
 
 export type EvaluateRequest = z.infer<typeof evaluateRequestSchema>;
@@ -37,14 +48,7 @@ export const resumeFileSchema = z.object({
     .number()
     .min(1, 'File must not be empty')
     .max(5 * 1024 * 1024, 'File size must be less than 5MB'),
-  type: z
-    .enum([
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/plain',
-    ])
-    .refine((val) => val, { message: 'File must be PDF, DOC, DOCX, or TXT' }),
+  type: z.literal('application/pdf', { message: 'File must be a PDF' }),
 });
 
 /**

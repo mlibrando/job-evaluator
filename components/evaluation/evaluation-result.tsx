@@ -4,7 +4,30 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button, Card, CardHeader, CardTitle, CardContent, Alert } from '@/components/ui';
-import type { Evaluation } from '@/types/evaluation';
+import type {
+  Evaluation,
+  MatchLevel,
+  RequirementCategory,
+  SubscoreBreakdown,
+} from '@/types/evaluation';
+import { getPresentCategories } from '@/lib/ai/scoring';
+
+const SUBSCORE_LABELS: {
+  key: keyof SubscoreBreakdown;
+  category: RequirementCategory;
+  label: string;
+}[] = [
+  { key: 'skillMatch', category: 'skill', label: 'Skills' },
+  { key: 'experienceMatch', category: 'experience', label: 'Experience' },
+  { key: 'domainFit', category: 'domain', label: 'Domain' },
+];
+
+const MATCH_COLORS: Record<MatchLevel, string> = {
+  direct: 'text-green-600 dark:text-green-400',
+  adjacent: 'text-blue-600 dark:text-blue-400',
+  partial: 'text-yellow-600 dark:text-yellow-400',
+  none: 'text-red-600 dark:text-red-400',
+};
 
 interface EvaluationResultProps {
   evaluation: Evaluation;
@@ -52,6 +75,19 @@ export function EvaluationResult({ evaluation }: EvaluationResultProps) {
     if (score >= 60) return 'bg-yellow-50 dark:bg-yellow-900/20';
     return 'bg-red-50 dark:bg-red-900/20';
   };
+
+  const getScoreBarColor = (score: number) => {
+    if (score >= 80) return 'bg-green-500';
+    if (score >= 60) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  const assessedCategories = getPresentCategories(
+    evaluation.analysis.requirements ?? []
+  );
+  const visibleSubscores = SUBSCORE_LABELS.filter(({ category }) =>
+    assessedCategories.includes(category)
+  );
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -120,6 +156,83 @@ export function EvaluationResult({ evaluation }: EvaluationResultProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Score Breakdown */}
+      {evaluation.analysis.subscores && visibleSubscores.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Score Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-4">
+              {visibleSubscores.map(({ key, label }) => {
+                const score = evaluation.analysis.subscores[key];
+                return (
+                  <li key={key}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-zinc-900 dark:text-white">
+                        {label}
+                      </span>
+                      <span className={`text-sm font-semibold ${getScoreColor(score)}`}>
+                        {score}
+                      </span>
+                    </div>
+                    <div className={`h-2 rounded-full overflow-hidden ${getScoreBgColor(score)}`}>
+                      <div
+                        className={`h-full rounded-full ${getScoreBarColor(score)}`}
+                        style={{ width: `${score}%` }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Requirements */}
+      {evaluation.analysis.requirements && evaluation.analysis.requirements.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Requirements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-4">
+              {evaluation.analysis.requirements.map((requirement) => {
+                const assessment = evaluation.analysis.assessments?.find(
+                  (a) => a.requirementId === requirement.id
+                );
+                const match = assessment?.match ?? 'none';
+                return (
+                  <li key={requirement.id}>
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-zinc-900 dark:text-white">
+                        {requirement.text}
+                        {requirement.importance === 'required' && (
+                          <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-500">
+                            required
+                          </span>
+                        )}
+                      </span>
+                      <span
+                        className={`flex-shrink-0 text-sm font-semibold ${MATCH_COLORS[match]}`}
+                      >
+                        {match}
+                      </span>
+                    </div>
+                    {assessment?.reasoning && (
+                      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                        {assessment.reasoning}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Key Insights */}
       {evaluation.analysis.keyInsights && evaluation.analysis.keyInsights.length > 0 && (

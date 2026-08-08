@@ -9,12 +9,7 @@ interface ResumeUploadProps {
   disabled?: boolean;
 }
 
-const ACCEPTED_FILE_TYPES = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'text/plain',
-];
+const ACCEPTED_FILE_TYPE = 'application/pdf';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -24,8 +19,12 @@ export function ResumeUpload({ file, onFileSelect, disabled }: ResumeUploadProps
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): string | null => {
-    if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
-      return 'Invalid file type. Please upload a PDF, DOC, DOCX, or TXT file.';
+    const isPdf =
+      file.type === ACCEPTED_FILE_TYPE ||
+      (file.type === '' && file.name.toLowerCase().endsWith('.pdf'));
+
+    if (!isPdf) {
+      return 'Invalid file type. Please upload a PDF file.';
     }
     if (file.size > MAX_FILE_SIZE) {
       return 'File size exceeds 5MB. Please upload a smaller file.';
@@ -111,7 +110,7 @@ export function ResumeUpload({ file, onFileSelect, disabled }: ResumeUploadProps
           <input
             ref={fileInputRef}
             type="file"
-            accept=".pdf,.doc,.docx,.txt"
+            accept="application/pdf,.pdf"
             onChange={handleFileInputChange}
             disabled={disabled}
             className="hidden"
@@ -134,7 +133,7 @@ export function ResumeUpload({ file, onFileSelect, disabled }: ResumeUploadProps
                 {isDragging ? 'Drop your resume here' : 'Drop your resume here, or click to browse'}
               </p>
               <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-                PDF, DOC, DOCX, or TXT (max 5MB)
+                PDF only (max 5MB)
               </p>
             </div>
           </div>
