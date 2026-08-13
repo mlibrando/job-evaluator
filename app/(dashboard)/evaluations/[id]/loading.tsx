@@ -1,26 +1,20 @@
-import { Card, CardHeader, CardContent, Spinner } from '@/components/ui';
+import { Card, Spinner } from '@/components/ui';
 
 export default function EvaluationLoading() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="space-y-6">
-        {/* Header Skeleton */}
-        <div className="animate-pulse">
-          <div className="h-9 w-64 bg-zinc-200 dark:bg-zinc-800 rounded mb-2" />
-          <div className="h-6 w-40 bg-zinc-200 dark:bg-zinc-800 rounded mb-2" />
-          <div className="h-4 w-32 bg-zinc-200 dark:bg-zinc-800 rounded" />
-        </div>
-
-        {/* Loading Card */}
-        <Card>
-          <CardContent className="py-16">
-            <div className="flex flex-col items-center justify-center gap-4">
-              <Spinner size="lg" />
-              <p className="text-zinc-600 dark:text-zinc-400">Loading evaluation results...</p>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="mx-auto max-w-[1120px] px-8 pt-14 pb-24">
+      {/* Mirrors the loaded layout: title block, then the emphasis score card. */}
+      <div className="mb-10 animate-pulse">
+        <div className="mb-3 h-11 w-80 max-w-full rounded bg-surface-sunken" />
+        <div className="h-5 w-56 max-w-full rounded bg-surface-sunken" />
       </div>
+
+      <Card emphasis>
+        <div className="flex flex-col items-center justify-center gap-4 py-12">
+          <Spinner size="lg" />
+          <p className="text-ink-secondary">Loading evaluation results...</p>
+        </div>
+      </Card>
     </div>
   );
 }

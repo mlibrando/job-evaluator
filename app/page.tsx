@@ -11,7 +11,7 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-zinc-900 dark:bg-white" />
               <span className="text-xl font-bold text-zinc-900 dark:text-white">
-                AI Job Evaluator
+                Fitly
               </span>
             </div>
             <Link href="/login">
@@ -79,7 +79,7 @@ export default function Home() {
           {/* Benefits */}
           <div className="mt-32">
             <h2 className="text-center text-3xl font-bold text-zinc-900 dark:text-white">
-              Why Use AI Job Evaluator?
+              Why Use Fitly?
             </h2>
             <div className="mt-12 grid gap-8 md:grid-cols-2">
               <BenefitCard
@@ -124,7 +124,7 @@ export default function Home() {
       <footer className="border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
-            © 2026 AI Job Evaluator. Powered by Claude AI.
+            © {new Date().getFullYear()} Fitly. Powered by Claude AI.
           </p>
         </div>
       </footer>

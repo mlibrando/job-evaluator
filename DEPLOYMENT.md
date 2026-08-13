@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers deploying the AI Job Post Evaluator to Vercel (recommended) or other platforms.
+This guide covers deploying Fitly to Vercel (recommended) or other platforms.
 
 ## Vercel Deployment (Recommended)
 
