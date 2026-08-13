@@ -60,6 +60,12 @@
  * `font-body` override on an h2 used as a small eyebrow label.
  */
 @layer base {
+  /* Reserve the scrollbar gutter so centred layouts don't shift horizontally
+     between pages that scroll and pages that don't. */
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     background: var(--color-page);
     color: var(--color-ink);

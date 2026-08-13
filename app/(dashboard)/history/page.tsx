@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation';
 import { getUserEvaluations } from '@/lib/aws/dynamodb';
 import { EvaluationList } from '@/components/evaluation/evaluation-list';
 
+// Matches the dashboard's ceiling so the two pages report the same totals.
+const EVALUATION_FETCH_LIMIT = 500;
+
 export default async function HistoryPage() {
   const session = await auth();
 
@@ -10,18 +13,17 @@ export default async function HistoryPage() {
     redirect('/login');
   }
 
-  const { evaluations } = await getUserEvaluations(session.user.id, 50);
+  const { evaluations } = await getUserEvaluations(session.user.id, EVALUATION_FETCH_LIMIT);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-          Evaluation History
-        </h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          View and manage all your job evaluations
-        </p>
-      </div>
+    <div className="mx-auto max-w-[1120px] px-8 pt-16 pb-28">
+      <h1 className="font-display text-[44px] leading-[1.1] tracking-[-0.01em] text-ink">
+        Evaluation history
+      </h1>
+      <p className="mt-2.5 max-w-[60ch] text-base leading-relaxed text-ink-secondary">
+        Every posting you&apos;ve scored. Search by title or company, or sort to find the
+        closest matches.
+      </p>
 
       <EvaluationList evaluations={evaluations} />
     </div>
