@@ -16,20 +16,23 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles =
+    'inline-flex items-center justify-center gap-2 rounded-sm border border-transparent font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-page disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variantStyles = {
-    primary: 'bg-zinc-900 text-white hover:bg-zinc-800 focus:ring-zinc-900 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100',
-    secondary: 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 focus:ring-zinc-500 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700',
-    outline: 'border-2 border-zinc-300 text-zinc-700 hover:bg-zinc-50 focus:ring-zinc-500 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800',
-    ghost: 'text-zinc-700 hover:bg-zinc-100 focus:ring-zinc-500 dark:text-zinc-300 dark:hover:bg-zinc-800',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-600',
+    primary: 'bg-accent text-white hover:bg-accent-hover',
+    secondary: 'border-hairline-strong text-ink hover:border-ink',
+    outline: 'border-hairline-strong text-ink-secondary hover:border-ink hover:text-ink',
+    ghost: 'text-ink-secondary hover:text-ink',
+    danger: 'bg-danger text-white hover:opacity-90',
   };
 
+  // Fixed heights (36 / 44 / 52) rather than vertical padding, so buttons line
+  // up with the design's inputs and icon buttons.
   const sizeStyles = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    sm: 'h-9 px-4 text-sm',
+    md: 'h-11 px-5 text-[15px]',
+    lg: 'h-13 px-6 text-base',
   };
 
   return (

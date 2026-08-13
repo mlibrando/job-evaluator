@@ -4,9 +4,16 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   padding?: 'none' | 'sm' | 'md' | 'lg';
+  /** Hero treatment: roomier padding and a soft lift. Used for the score card. */
+  emphasis?: boolean;
 }
 
-export function Card({ children, className = '', padding = 'md' }: CardProps) {
+export function Card({
+  children,
+  className = '',
+  padding = 'md',
+  emphasis = false,
+}: CardProps) {
   const paddingStyles = {
     none: '',
     sm: 'p-4',
@@ -16,7 +23,9 @@ export function Card({ children, className = '', padding = 'md' }: CardProps) {
 
   return (
     <div
-      className={`rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 ${paddingStyles[padding]} ${className}`}
+      className={`rounded border border-hairline bg-surface ${
+        emphasis ? 'p-10 shadow-score' : paddingStyles[padding]
+      } ${className}`}
     >
       {children}
     </div>
@@ -30,9 +39,7 @@ interface CardHeaderProps {
 
 export function CardHeader({ children, className = '' }: CardHeaderProps) {
   return (
-    <div className={`border-b border-zinc-200 pb-4 mb-4 dark:border-zinc-800 ${className}`}>
-      {children}
-    </div>
+    <div className={`mb-4 border-b border-hairline pb-4 ${className}`}>{children}</div>
   );
 }
 
@@ -42,11 +49,7 @@ interface CardTitleProps {
 }
 
 export function CardTitle({ children, className = '' }: CardTitleProps) {
-  return (
-    <h3 className={`text-lg font-semibold text-zinc-900 dark:text-white ${className}`}>
-      {children}
-    </h3>
-  );
+  return <h3 className={`font-display text-xl text-ink ${className}`}>{children}</h3>;
 }
 
 interface CardContentProps {

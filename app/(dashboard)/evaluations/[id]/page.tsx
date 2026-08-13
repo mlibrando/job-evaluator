@@ -27,7 +27,7 @@ export default async function EvaluationPage({ params }: EvaluationPageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-[1120px] px-8 pt-14 pb-24">
       <EvaluationResult evaluation={evaluation} />
     </div>
   );

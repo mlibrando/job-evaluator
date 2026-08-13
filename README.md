@@ -1,4 +1,4 @@
-# AI Job Post Evaluator
+# Fitly
 
 An AI-powered web application that analyzes how well a candidate's resume matches job postings using Claude AI. Built with Next.js, TypeScript, and AWS services.
 

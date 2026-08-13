@@ -1,12 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button, Card, CardHeader, CardTitle, CardContent, Alert } from '@/components/ui';
+import { MoreHorizontal, Trash2 } from 'lucide-react';
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  InsightRow,
+  MATCH_LABELS,
+  MATCH_TONES,
+  ScoreRing,
+  SubScoreBar,
+  getScoreLabel,
+  getScoreTone,
+  useDismiss,
+  type InsightTone,
+} from '@/components/ui';
 import type {
   Evaluation,
-  MatchLevel,
   RequirementCategory,
   SubscoreBreakdown,
 } from '@/types/evaluation';
@@ -17,17 +31,10 @@ const SUBSCORE_LABELS: {
   category: RequirementCategory;
   label: string;
 }[] = [
-  { key: 'skillMatch', category: 'skill', label: 'Skills' },
+  { key: 'skillMatch', category: 'skill', label: 'Skill match' },
   { key: 'experienceMatch', category: 'experience', label: 'Experience' },
-  { key: 'domainFit', category: 'domain', label: 'Domain' },
+  { key: 'domainFit', category: 'domain', label: 'Domain fit' },
 ];
-
-const MATCH_COLORS: Record<MatchLevel, string> = {
-  direct: 'text-green-600 dark:text-green-400',
-  adjacent: 'text-blue-600 dark:text-blue-400',
-  partial: 'text-yellow-600 dark:text-yellow-400',
-  none: 'text-red-600 dark:text-red-400',
-};
 
 interface EvaluationResultProps {
   evaluation: Evaluation;
@@ -37,12 +44,15 @@ export function EvaluationResult({ evaluation }: EvaluationResultProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useDismiss(menuRef, menuOpen, () => setMenuOpen(false));
+
+  const { analysis } = evaluation;
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this evaluation? This action cannot be undone.')) {
-      return;
-    }
-
     setIsDeleting(true);
     setError(null);
 
@@ -61,320 +71,289 @@ export function EvaluationResult({ evaluation }: EvaluationResultProps) {
       console.error('Delete error:', err);
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setIsDeleting(false);
+      setConfirmOpen(false);
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 dark:text-green-400';
-    if (score >= 60) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
-  };
-
-  const getScoreBgColor = (score: number) => {
-    if (score >= 80) return 'bg-green-50 dark:bg-green-900/20';
-    if (score >= 60) return 'bg-yellow-50 dark:bg-yellow-900/20';
-    return 'bg-red-50 dark:bg-red-900/20';
-  };
-
-  const getScoreBarColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500';
-    if (score >= 60) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
-
-  const assessedCategories = getPresentCategories(
-    evaluation.analysis.requirements ?? []
-  );
+  // Only show subscores for categories the posting actually produced
+  // requirements for — an unassessed category is excluded from overallScore, so
+  // rendering its 0 would read as "scored badly" rather than "never assessed".
+  const assessedCategories = getPresentCategories(analysis.requirements ?? []);
   const visibleSubscores = SUBSCORE_LABELS.filter(({ category }) =>
     assessedCategories.includes(category)
   );
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const summaryParagraphs = (analysis.summary ?? '')
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
-  };
+
+  const hasKeyInsights =
+    analysis.keyInsights?.length ||
+    analysis.strengths?.length ||
+    analysis.weaknesses?.length;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-            {evaluation.jobTitle}
-          </h1>
-          {evaluation.companyName && (
-            <p className="mt-1 text-lg text-zinc-600 dark:text-zinc-400">
-              {evaluation.companyName}
-            </p>
-          )}
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">
-            Evaluated on {formatDate(evaluation.createdAt)}
+    <div>
+      {/* Title, badge, actions */}
+      <div className="mb-10 flex flex-wrap items-start justify-between gap-8">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-baseline gap-4">
+            <h1 className="font-display text-[40px] leading-[1.15] text-ink">
+              {evaluation.jobTitle}
+            </h1>
+            <Badge tone={getScoreTone(analysis.overallScore)}>
+              {getScoreLabel(analysis.overallScore)}
+            </Badge>
+          </div>
+          <p className="mt-2.5 text-[15px] leading-normal">
+            {evaluation.companyName && (
+              <span className="text-ink">{evaluation.companyName}</span>
+            )}
+            <span className="text-ink-muted">
+              {evaluation.companyName ? ' · ' : ''}
+              Evaluated {formatDate(evaluation.createdAt)}
+            </span>
           </p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="ml-auto flex items-center gap-2 pt-1.5">
+          <div className="relative" ref={menuRef}>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-label="More actions"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              className="flex h-11 w-11 items-center justify-center rounded-sm border border-transparent text-ink-secondary transition-colors hover:border-hairline-strong hover:text-ink"
+            >
+              <MoreHorizontal size={20} strokeWidth={1.5} />
+            </button>
+
+            {menuOpen && (
+              <div
+                role="menu"
+                className="absolute top-12 right-0 z-20 min-w-52 rounded border border-hairline bg-surface p-1.5 shadow-score"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setConfirmOpen(true);
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-sm px-3 py-2.5 text-left text-[15px] text-ink-secondary transition-colors hover:bg-surface-sunken hover:text-danger"
+                >
+                  <Trash2 size={16} strokeWidth={1.5} />
+                  Delete evaluation
+                </button>
+              </div>
+            )}
+          </div>
+
           <Link href="/evaluate">
-            <Button variant="outline">
-              New Evaluation
-            </Button>
+            <Button variant="primary">New evaluation</Button>
           </Link>
-          <Button
-            variant="danger"
-            onClick={handleDelete}
-            disabled={isDeleting}
-            isLoading={isDeleting}
-          >
-            Delete
-          </Button>
         </div>
       </div>
 
-      {error && (
-        <Alert variant="error">
-          {error}
-        </Alert>
-      )}
-
-      {/* Overall Score */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center">
-            <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2">
-              Overall Match Score
-            </p>
-            <div className={`inline-flex items-center justify-center w-32 h-32 rounded-full ${getScoreBgColor(evaluation.analysis.overallScore)}`}>
-              <span className={`text-5xl font-bold ${getScoreColor(evaluation.analysis.overallScore)}`}>
-                {evaluation.analysis.overallScore}
-              </span>
-            </div>
-            <p className="mt-4 text-zinc-600 dark:text-zinc-400">
-              {evaluation.analysis.summary}
-            </p>
+      {confirmOpen && (
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-6 rounded border border-hairline-strong bg-surface px-6 py-4.5">
+          <p className="text-[15px] leading-normal text-ink">
+            Delete this evaluation? This can&apos;t be undone.
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              isLoading={isDeleting}
+              className="hover:text-danger"
+            >
+              Delete evaluation
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setConfirmOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Score Breakdown */}
-      {evaluation.analysis.subscores && visibleSubscores.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Score Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-4">
-              {visibleSubscores.map(({ key, label }) => {
-                const score = evaluation.analysis.subscores[key];
-                return (
-                  <li key={key}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-zinc-900 dark:text-white">
-                        {label}
-                      </span>
-                      <span className={`text-sm font-semibold ${getScoreColor(score)}`}>
-                        {score}
-                      </span>
-                    </div>
-                    <div className={`h-2 rounded-full overflow-hidden ${getScoreBgColor(score)}`}>
-                      <div
-                        className={`h-full rounded-full ${getScoreBarColor(score)}`}
-                        style={{ width: `${score}%` }}
-                      />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
+        </div>
       )}
 
-      {/* Requirements */}
-      {evaluation.analysis.requirements && evaluation.analysis.requirements.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Requirements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-4">
-              {evaluation.analysis.requirements.map((requirement) => {
-                const assessment = evaluation.analysis.assessments?.find(
-                  (a) => a.requirementId === requirement.id
-                );
-                const match = assessment?.match ?? 'none';
-                return (
-                  <li key={requirement.id}>
-                    <div className="flex items-start justify-between gap-3">
-                      <span className="text-zinc-900 dark:text-white">
-                        {requirement.text}
-                        {requirement.importance === 'required' && (
-                          <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-500">
-                            required
-                          </span>
-                        )}
-                      </span>
-                      <span
-                        className={`flex-shrink-0 text-sm font-semibold ${MATCH_COLORS[match]}`}
-                      >
-                        {match}
-                      </span>
-                    </div>
-                    {assessment?.reasoning && (
-                      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                        {assessment.reasoning}
-                      </p>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
+      {error && (
+        <div className="mb-8">
+          <Alert variant="error">{error}</Alert>
+        </div>
       )}
 
-      {/* Key Insights */}
-      {evaluation.analysis.keyInsights && evaluation.analysis.keyInsights.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Key Insights</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              {evaluation.analysis.keyInsights.map((insight, index) => (
-                <li key={index} className="flex gap-3">
-                  <span className="flex-shrink-0 text-blue-600 dark:text-blue-400 mt-0.5">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
-                  <span className="text-zinc-900 dark:text-white">{insight}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
+      {/* Score */}
+      <div className="mb-16">
+        <Card emphasis>
+          <div className="flex flex-wrap items-center gap-12">
+            <div className="flex shrink-0 flex-col items-center">
+              <ScoreRing score={analysis.overallScore} />
+            </div>
 
-      {/* Strengths */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Strengths</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-3">
-            {evaluation.analysis.strengths.map((strength, index) => (
-              <li key={index} className="flex gap-3">
-                <span className="flex-shrink-0 text-green-600 dark:text-green-400 mt-0.5">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </span>
-                <span className="text-zinc-900 dark:text-white">{strength}</span>
-              </li>
+            {visibleSubscores.length > 0 && (
+              <div className="flex min-w-0 max-w-[440px] flex-1 basis-[300px] flex-col gap-5.5">
+                {visibleSubscores.map(({ key, label }) => (
+                  <SubScoreBar key={key} label={label} value={analysis.subscores[key]} />
+                ))}
+              </div>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {summaryParagraphs.length > 0 && (
+        <Section label="Summary" className="mb-12">
+          <div className="flex max-w-[68ch] flex-col gap-5">
+            {summaryParagraphs.map((paragraph, index) => (
+              <p
+                key={index}
+                className="text-[17px] leading-[1.7] text-pretty text-ink-secondary"
+              >
+                {paragraph}
+              </p>
             ))}
-          </ul>
-        </CardContent>
-      </Card>
-
-      {/* Weaknesses */}
-      {evaluation.analysis.weaknesses && evaluation.analysis.weaknesses.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Areas for Improvement</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              {evaluation.analysis.weaknesses.map((weakness, index) => (
-                <li key={index} className="flex gap-3">
-                  <span className="flex-shrink-0 text-yellow-600 dark:text-yellow-400 mt-0.5">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
-                  <span className="text-zinc-900 dark:text-white">{weakness}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+          </div>
+        </Section>
       )}
 
-      {/* Missing Skills */}
-      {evaluation.analysis.missingSkills && evaluation.analysis.missingSkills.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Missing Skills</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              {evaluation.analysis.missingSkills.map((skill, index) => (
-                <li key={index} className="flex gap-3">
-                  <span className="flex-shrink-0 text-orange-600 dark:text-orange-400 mt-0.5">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
-                  <span className="text-zinc-900 dark:text-white">{skill}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
+      {hasKeyInsights ? (
+        <Section label="Key insights" className="mb-12">
+          <InsightList items={analysis.keyInsights} tone="accent" />
+          <SubGroup label="What's working" items={analysis.strengths} tone="accent" />
+          <SubGroup label="What to fix" items={analysis.weaknesses} tone="warn" />
+        </Section>
+      ) : null}
 
-      {/* Recommendations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recommendations</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-3">
-            {evaluation.analysis.recommendations.map((recommendation, index) => (
-              <li key={index} className="flex gap-3">
-                <span className="flex-shrink-0 text-blue-600 dark:text-blue-400 mt-0.5">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                  </svg>
-                </span>
-                <span className="text-zinc-900 dark:text-white">{recommendation}</span>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      {analysis.requirements?.length ? (
+        <Section label="Requirements" className="mb-12">
+          <div className="max-w-[78ch] border-t border-hairline">
+            {analysis.requirements.map((requirement, index) => {
+              const assessment = analysis.assessments?.find(
+                (a) => a.requirementId === requirement.id
+              );
+              const match = assessment?.match ?? 'none';
+              const tone = MATCH_TONES[match];
+              const last = index === analysis.requirements.length - 1;
 
-      {/* Actions */}
-      <div className="flex justify-center gap-4">
+              return (
+                <div
+                  key={requirement.id}
+                  className={`py-4 ${last ? '' : 'border-b border-hairline'}`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="text-base leading-relaxed text-ink">
+                      {requirement.text}
+                      {requirement.importance === 'required' && (
+                        <span className="ml-2 text-[13px] text-ink-muted">required</span>
+                      )}
+                    </span>
+                    <Badge tone={tone === 'neutral' ? 'neutral' : tone} className="shrink-0">
+                      {MATCH_LABELS[match]}
+                    </Badge>
+                  </div>
+                  {assessment?.reasoning && (
+                    <p className="mt-1.5 text-[15px] leading-relaxed text-ink-secondary">
+                      {assessment.reasoning}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+      ) : null}
+
+      {analysis.missingSkills?.length ? (
+        <Section label="Missing skills" className="mb-12">
+          <InsightList items={analysis.missingSkills} tone="warn" />
+        </Section>
+      ) : null}
+
+      {analysis.recommendations?.length ? (
+        <Section label="Recommendations" className="mb-12">
+          <InsightList items={analysis.recommendations} tone="accent" />
+        </Section>
+      ) : null}
+
+      <div className="mt-24 flex flex-wrap items-center justify-center gap-3 border-t border-hairline pt-10">
         <Link href="/history">
-          <Button variant="outline">
-            View All Evaluations
-          </Button>
+          <Button variant="secondary">View all evaluations</Button>
         </Link>
         <Link href="/evaluate">
-          <Button variant="primary">
-            Evaluate Another Job
-          </Button>
+          <Button variant="secondary">Evaluate another job</Button>
         </Link>
       </div>
+    </div>
+  );
+}
+
+/** Uppercase section label above a block of content. */
+function Section({
+  label,
+  className = '',
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className={className}>
+      <h2 className="mb-4 font-body text-[13px] leading-tight font-medium tracking-[0.1em] uppercase text-ink-muted">
+        {label}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+/** Secondary label used inside a Section (e.g. "What's working"). */
+function SubGroup({
+  label,
+  items,
+  tone,
+}: {
+  label: string;
+  items?: string[];
+  tone: InsightTone;
+}) {
+  if (!items?.length) return null;
+
+  return (
+    <div className="mt-8">
+      <h3 className="mb-1 font-body text-[13px] leading-tight font-medium tracking-[0.1em] uppercase text-ink-muted">
+        {label}
+      </h3>
+      <InsightList items={items} tone={tone} />
+    </div>
+  );
+}
+
+function InsightList({ items, tone }: { items?: string[]; tone: InsightTone }) {
+  if (!items?.length) return null;
+
+  return (
+    <div className="max-w-[78ch] border-t border-hairline">
+      {items.map((item, index) => (
+        <InsightRow key={index} tone={tone} last={index === items.length - 1}>
+          {item}
+        </InsightRow>
+      ))}
     </div>
   );
 }
