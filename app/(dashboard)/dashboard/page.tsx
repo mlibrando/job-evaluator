@@ -1,8 +1,14 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Button, Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { FileText } from 'lucide-react';
+import { Badge, Button, Card, getScoreTone } from '@/components/ui';
 import { getUserEvaluations } from '@/lib/aws/dynamodb';
+import { getRateLimitStatus } from '@/lib/rate-limit';
+import type { Evaluation } from '@/types/evaluation';
+
+const EVALUATION_FETCH_LIMIT = 500;
+const RECENT_COUNT = 4;
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -11,156 +17,174 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  // Check if user has any evaluations
-  let hasEvaluations = false;
-  let totalEvaluations = 0;
-  let thisMonthEvaluations = 0;
+  const [evaluations, rateLimit] = await Promise.all([
+    getUserEvaluations(session.user.id, EVALUATION_FETCH_LIMIT)
+      .then((result) => result.evaluations ?? [])
+      .catch((error) => {
+        console.error('Failed to fetch evaluations:', error);
+        return [] as Evaluation[];
+      }),
+    getRateLimitStatus(session.user.id).catch((error) => {
+      console.error('Failed to fetch rate limit status:', error);
+      return null;
+    }),
+  ]);
 
-  try {
-    const { evaluations } = await getUserEvaluations(session.user.id);
-    hasEvaluations = evaluations.length > 0;
-    totalEvaluations = evaluations.length;
+  const now = new Date();
+  const thisMonthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const thisMonthCount = evaluations.filter((e) =>
+    e.createdAt.startsWith(thisMonthPrefix)
+  ).length;
 
-    // Count evaluations from this month
-    const now = new Date();
-    const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    thisMonthEvaluations = evaluations.filter(e => e.createdAt.startsWith(thisMonth)).length;
-  } catch (error) {
-    console.error('Failed to fetch evaluations:', error);
-    // Default to false, show the button for new users
-  }
+  const scores = evaluations.map((evals) => evals.analysis.overallScore);
+  const averageFit = scores.length
+    ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+    : null;
+  const bestMatch = scores.length ? Math.max(...scores) : null;
+
+  const recent = evaluations.slice(0, RECENT_COUNT);
+  const latest = evaluations[0];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Welcome Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-          Welcome back, {session.user?.name || session.user?.email}!
-        </h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Evaluate job postings and see if you match.
-        </p>
+    <div className="mx-auto max-w-[1120px] px-8 pt-16 pb-28">
+      <div className="flex flex-wrap items-end justify-between gap-8">
+        <div>
+          <h1 className="font-display text-[44px] leading-[1.1] tracking-[-0.01em] text-ink">
+            Welcome back, {session.user?.name?.split(' ')[0] ?? session.user?.email}
+          </h1>
+          <p className="mt-2.5 text-base leading-relaxed text-ink-secondary">
+            You&apos;ve run {thisMonthCount} {thisMonthCount === 1 ? 'evaluation' : 'evaluations'}{' '}
+            this month.
+            {rateLimit &&
+              ` You have ${rateLimit.remaining} of ${rateLimit.limit} checks left this hour.`}
+          </p>
+        </div>
+        <Link href="/evaluate">
+          <Button variant="primary">Start evaluation</Button>
+        </Link>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid gap-6 md:grid-cols-3 mb-8">
-        <Link href="/evaluate" className="block">
-          <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="pt-6">
-              <div className="text-4xl mb-4">🎯</div>
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">
-                New Evaluation
-              </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Upload a resume and evaluate a job posting
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/history" className="block">
-          <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="pt-6">
-              <div className="text-4xl mb-4">📊</div>
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">
-                View History
-              </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                See all your past evaluations and results
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Card className="h-full">
-          <CardContent className="pt-6">
-            <div className="text-4xl mb-4">⚡</div>
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">
-              Quick Stats
-            </h3>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-              Track your evaluation usage
-            </p>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-zinc-600 dark:text-zinc-400">Total:</span>
-                <span className="font-medium text-zinc-900 dark:text-white">
-                  {totalEvaluations} {totalEvaluations === 1 ? 'evaluation' : 'evaluations'}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-zinc-600 dark:text-zinc-400">This month:</span>
-                <span className="font-medium text-zinc-900 dark:text-white">
-                  {thisMonthEvaluations} {thisMonthEvaluations === 1 ? 'evaluation' : 'evaluations'}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-zinc-600 dark:text-zinc-400">Rate limit:</span>
-                <span className="font-medium text-zinc-900 dark:text-white">10/hour</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat label="Evaluations run" value={evaluations.length} />
+        <Stat label="This month" value={thisMonthCount} />
+        <Stat label="Average fit" value={averageFit} />
+        <Stat label="Best match" value={bestMatch} />
       </div>
 
-      {/* Getting Started */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Getting Started</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-semibold text-sm">
-                1
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-zinc-900 dark:text-white">
-                  Start a New Evaluation
-                </h4>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Click "New Evaluation" to upload your resume and paste a job description.
-                </p>
+      {latest && (
+        <Card className="mt-6">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="flex items-center gap-3.5">
+              <FileText size={20} strokeWidth={1.5} className="shrink-0 text-ink-secondary" />
+              <div>
+                <div className="text-[15px] font-medium text-ink">
+                  {resumeFileName(latest.resumeKey)}
+                </div>
+                <div className="mt-0.5 text-sm text-ink-muted">
+                  Résumé on file · updated {formatDate(latest.createdAt)}
+                </div>
               </div>
             </div>
-            <div className="flex gap-4">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-semibold text-sm">
-                2
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-zinc-900 dark:text-white">
-                  Get AI Analysis
-                </h4>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Our AI will analyze your fit for the position and provide detailed insights.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-semibold text-sm">
-                3
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-zinc-900 dark:text-white">
-                  Review & Apply
-                </h4>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Use the insights to tailor your application and improve your chances.
-                </p>
-              </div>
-            </div>
+            <Link href="/evaluate" className="text-sm text-ink-secondary hover:text-accent">
+              Replace
+            </Link>
           </div>
-          {!hasEvaluations && (
+        </Card>
+      )}
+
+      <div className="mt-16">
+        <div className="flex items-baseline justify-between gap-6 border-b border-hairline pb-4">
+          <h2 className="font-display text-3xl leading-tight text-ink">Recent evaluations</h2>
+          {evaluations.length > 0 && (
+            <Link href="/history" className="text-sm text-ink-secondary hover:text-accent">
+              View all
+            </Link>
+          )}
+        </div>
+
+        {recent.length > 0 ? (
+          <div className="flex flex-col">
+            {recent.map((evaluation, index) => (
+              <EvaluationRow
+                key={evaluation.evaluationId}
+                evaluation={evaluation}
+                last={index === recent.length - 1}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="py-10">
+            <p className="text-ink-secondary">
+              No evaluations yet. Upload a résumé and paste a job posting to see how you match.
+            </p>
             <div className="mt-6">
               <Link href="/evaluate">
-                <Button variant="primary">
-                  Start Your First Evaluation
-                </Button>
+                <Button variant="primary">Start your first evaluation</Button>
               </Link>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
+}
+
+function Stat({ label, value }: { label: string; value: number | null }) {
+  return (
+    <Card>
+      <div className="text-[13px] font-medium tracking-[0.1em] uppercase text-ink-muted">
+        {label}
+      </div>
+      <div className="mt-4 font-display text-[56px] leading-none tracking-[-0.02em] text-ink">
+        {value ?? '—'}
+      </div>
+    </Card>
+  );
+}
+
+function EvaluationRow({ evaluation, last }: { evaluation: Evaluation; last: boolean }) {
+  const { analysis } = evaluation;
+  const gaps = countGaps(evaluation);
+
+  return (
+    <Link
+      href={`/evaluations/${evaluation.evaluationId}`}
+      className={`flex flex-wrap items-center justify-between gap-6 py-5.5 ${
+        last ? '' : 'border-b border-hairline'
+      }`}
+    >
+      <div>
+        <div className="text-base text-ink">
+          {evaluation.jobTitle}
+          {evaluation.companyName && ` · ${evaluation.companyName}`}
+        </div>
+        <div className="mt-1 text-sm text-ink-muted">
+          Evaluated {formatDate(evaluation.createdAt)} · {gaps} {gaps === 1 ? 'gap' : 'gaps'}
+        </div>
+      </div>
+      <Badge tone={getScoreTone(analysis.overallScore)}>{analysis.overallScore}/100</Badge>
+    </Link>
+  );
+}
+
+// Evaluations stored before the requirement-level rewrite have no assessments.
+function countGaps({ analysis }: Evaluation): number {
+  if (analysis.assessments?.length) {
+    return analysis.assessments.filter((a) => a.match === 'none').length;
+  }
+  return analysis.missingSkills?.length ?? 0;
+}
+
+// Keys are `resumes/<userId>/<timestamp>-<original name>`.
+function resumeFileName(resumeKey: string): string {
+  const segment = resumeKey.split('/').pop() ?? resumeKey;
+  return segment.replace(/^\d+-/, '');
+}
+
+function formatDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 }

@@ -1,10 +1,9 @@
 export function Footer() {
   return (
     <footer className="border-t border-hairline bg-surface">
-      <div className="mx-auto max-w-[1120px] px-8 py-8">
-        <p className="text-center text-sm text-ink-secondary">
-          © {new Date().getFullYear()} Fitly. Powered by Claude AI.
-        </p>
+      <div className="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-6 p-8 text-sm text-ink-muted">
+        <span className="font-wordmark text-ink">Fitly</span>
+        <span>Powered by Claude</span>
       </div>
     </footer>
   );
