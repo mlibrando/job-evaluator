@@ -269,7 +269,7 @@ export function EvaluationForm({ rateLimit }: EvaluationFormProps) {
               disabled={isSubmitting}
               isLoading={isSubmitting}
             >
-              {isSubmitting ? 'Analyzing…' : 'Analyze job match'}
+              {isSubmitting ? 'Evaluating' : 'Evaluate match'}
             </Button>
           </div>
         </div>
