@@ -50,8 +50,8 @@ export default async function DashboardPage() {
 
   const averageFit = evaluations.length
     ? Math.round(
-        evaluations.reduce((sum, e) => sum + e.analysis.overallScore, 0) / evaluations.length,
-      )
+      evaluations.reduce((sum, e) => sum + e.analysis.overallScore, 0) / evaluations.length,
+    )
     : null;
   const best = evaluations.reduce<Evaluation | null>(
     (top, e) => (!top || e.analysis.overallScore > top.analysis.overallScore ? e : top),
@@ -83,10 +83,10 @@ export default async function DashboardPage() {
           </h1>
           <p className="text-sm leading-normal text-ink-secondary sm:text-[15px]">
             {thisMonthCount === 0
-              ? 'Nothing run this month yet.'
+              ? 'No evaluations run this month yet.'
               : `You've run ${thisMonthCount} ${thisMonthCount === 1 ? 'evaluation' : 'evaluations'} this month.`}
-            {latest?.resumeKey &&
-              ' Your résumé is on file, so a new evaluation only needs the posting.'}
+            {!latest?.resumeKey &&
+              ' Please upload a resume in PDF format to start evaluating job postings.'}
           </p>
         </div>
         <Link
@@ -164,8 +164,7 @@ export default async function DashboardPage() {
                     {resumeFileName(latest.resumeKey)}
                   </span>
                   <span className="text-xs text-ink-secondary sm:text-[13px]">
-                    <span className="hidden sm:inline">Used for every evaluation · u</span>
-                    <span className="sm:hidden">U</span>pdated {formatDate(latest.createdAt)}
+                    · updated {formatDate(latest.createdAt)}
                   </span>
                 </div>
               </div>

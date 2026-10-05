@@ -297,7 +297,27 @@ Provide your analysis in the following JSON format:
 
 Include exactly one assessment per requirement, using the requirement's \`id\` verbatim. Do not invent requirement ids.
 
-Reference concrete details from both the posting and the resume. Provide honest, constructive feedback that helps the candidate understand their fit for this role.`;
+Reference concrete details from both the posting and the resume. Provide honest, constructive feedback that helps the candidate understand their fit for this role.
+
+Use the below as your default writing guide for the narrative sections, but adapt to the specific posting and resume:
+- Plain, specific wording
+- Sound like a competent human technical/professional, not polished AI copy
+- Vary sentence structure naturally
+- Keep things direct and operational
+- Prefer concrete observations over broad claims
+- Preserve uncertainty when the evidence is incomplete
+- Avoid unnecessary hedging or unsupported confidence
+- Avoid forced rule-of-three structures
+- Avoid repeated rhetorical patterns
+- Avoid excessive em dashes
+- Avoid unnecessary quotation marks
+- Avoid dramatic framing and theatrical conclusions
+- Avoid generic filler and over-polished corporate language
+- Avoid AI-ish words like “delve,” “foster,” “showcase,” “harness,” “unveil”
+- Avoid constructions like “not just X, but Y”
+- Don't add a bunch of bold headings just to make something look structured
+- For technical writing especially, make the scope and actual decision/question clear rather than dressing it up
+`;
 }
 
 /**

@@ -157,11 +157,11 @@ export function EvaluationForm({ rateLimit, resumeOnFile }: EvaluationFormProps)
         <h1 className="text-4xl leading-none font-extrabold tracking-[-0.035em] text-ink sm:text-5xl">
           What are you applying for?
         </h1>
-        <p className="text-sm leading-normal text-ink-secondary sm:text-[15px]">
-          {resumeOnFile
-            ? 'Your résumé is already on file. Paste the posting and Fitly checks it requirement by requirement.'
-            : 'Add your résumé and paste the posting, and Fitly checks it requirement by requirement.'}
-        </p>
+        {!resumeOnFile && (
+          <p className="text-sm leading-normal text-ink-secondary sm:text-[15px]">
+            Add your résumé and paste the job posting.
+          </p>
+        )}
       </div>
 
       <form
