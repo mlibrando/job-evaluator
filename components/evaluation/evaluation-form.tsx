@@ -1,17 +1,37 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FileText } from 'lucide-react';
-import { Button, Card, Input, Textarea, Alert } from '@/components/ui';
-import { ResumeUpload } from '@/components/evaluation/resume-upload';
+import { ArrowRight, Check, Clipboard } from 'lucide-react';
+import { Button, Input, Textarea, Alert } from '@/components/ui';
+import { ResumeUpload, type ResumeOnFile } from '@/components/evaluation/resume-upload';
+import { cn } from '@/lib/utils/cn';
 import type { RateLimitResult } from '@/lib/rate-limit';
 
 interface EvaluationFormProps {
   rateLimit: RateLimitResult | null;
+  resumeOnFile: ResumeOnFile | null;
 }
 
-export function EvaluationForm({ rateLimit }: EvaluationFormProps) {
+const JOB_TITLE_MAX = 200;
+const COMPANY_MAX = 100;
+const DESCRIPTION_MIN = 50;
+const DESCRIPTION_MAX = 3000;
+
+const EYEBROW = 'font-mono text-[11px] tracking-[0.04em] text-ink-muted uppercase sm:text-xs';
+const COUNTER = 'font-mono text-[11px] text-ink-muted';
+
+const REPORT_ITEMS = [
+  { title: 'Overall and sub-scores', detail: 'Skills, experience and domain fit.' },
+  {
+    title: 'Requirement check',
+    detail: 'Met, partial or missing, with the line from your résumé.',
+  },
+  { title: 'Suggested fixes', detail: 'What to add or reword before you apply.' },
+];
+
+export function EvaluationForm({ rateLimit, resumeOnFile }: EvaluationFormProps) {
   const router = useRouter();
   const [formData, setFormData] = useState({
     jobTitle: '',
@@ -19,36 +39,23 @@ export function EvaluationForm({ rateLimit }: EvaluationFormProps) {
     jobDescription: '',
   });
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [existingResumeKey, setExistingResumeKey] = useState<string | null>(null);
-  const [useExistingResume, setUseExistingResume] = useState(false);
-  const [isLoadingResume, setIsLoadingResume] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch user's last resume on mount
-  useEffect(() => {
-    async function fetchLastResume() {
-      try {
-        const response = await fetch('/api/evaluations?limit=1');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data?.evaluations?.length > 0) {
-            const lastEvaluation = data.data.evaluations[0];
-            if (lastEvaluation.resumeKey) {
-              setExistingResumeKey(lastEvaluation.resumeKey);
-              setUseExistingResume(true);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch last resume:', err);
-      } finally {
-        setIsLoadingResume(false);
-      }
-    }
+  const resumeReady = Boolean(resumeFile || resumeOnFile);
+  const descriptionLength = formData.jobDescription.length;
 
-    fetchLastResume();
-  }, []);
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setFormData((current) => ({ ...current, jobDescription: text }));
+      }
+    } catch (err) {
+      console.error('Failed to read clipboard:', err);
+      setError('Couldn’t read your clipboard. Paste the posting into the box instead.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +66,7 @@ export function EvaluationForm({ rateLimit }: EvaluationFormProps) {
       setError('Job title is required');
       return;
     }
-    if (formData.jobTitle.length > 200) {
+    if (formData.jobTitle.length > JOB_TITLE_MAX) {
       setError('Job title must be less than 200 characters');
       return;
     }
@@ -67,20 +74,20 @@ export function EvaluationForm({ rateLimit }: EvaluationFormProps) {
       setError('Job description is required');
       return;
     }
-    if (formData.jobDescription.length < 50) {
+    if (descriptionLength < DESCRIPTION_MIN) {
       setError('Job description must be at least 50 characters');
       return;
     }
-    if (formData.jobDescription.length > 3000) {
+    if (descriptionLength > DESCRIPTION_MAX) {
       setError('Job description must be less than 3,000 characters');
       return;
     }
-    if (formData.companyName && formData.companyName.length > 100) {
+    if (formData.companyName && formData.companyName.length > COMPANY_MAX) {
       setError('Company name must be less than 100 characters');
       return;
     }
-    if (!resumeFile && !useExistingResume) {
-      setError('Please upload your resume or use your existing resume');
+    if (!resumeReady) {
+      setError('Please upload your résumé');
       return;
     }
 
@@ -108,7 +115,7 @@ export function EvaluationForm({ rateLimit }: EvaluationFormProps) {
         resumeKey = uploadResult.data?.key || uploadResult.key;
       } else {
         // Use existing resume
-        resumeKey = existingResumeKey!;
+        resumeKey = resumeOnFile!.key;
       }
 
       // Step 2: Submit evaluation
@@ -144,150 +151,256 @@ export function EvaluationForm({ rateLimit }: EvaluationFormProps) {
   };
 
   return (
-    <div className="mx-auto max-w-[800px] px-8 pt-16 pb-28">
-      <h1 className="font-display text-[44px] leading-[1.1] tracking-[-0.01em] text-ink">
-        New evaluation
-      </h1>
-      <p className="mt-2.5 max-w-[60ch] text-base leading-relaxed text-ink-secondary">
-        Add your résumé and a job posting to see how well they match.
-      </p>
+    <div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-5 pt-7 pb-8 sm:gap-9 sm:px-10 sm:pt-12 sm:pb-18">
+      <div className="flex flex-col gap-2.5 pb-1.5 sm:pb-0">
+        <span className={EYEBROW}>New evaluation</span>
+        <h1 className="text-4xl leading-none font-extrabold tracking-[-0.035em] text-ink sm:text-5xl">
+          What are you applying for?
+        </h1>
+        <p className="text-sm leading-normal text-ink-secondary sm:text-[15px]">
+          {resumeOnFile
+            ? 'Your résumé is already on file. Paste the posting and Fitly checks it requirement by requirement.'
+            : 'Add your résumé and paste the posting, and Fitly checks it requirement by requirement.'}
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <section className="mt-14">
-          <StepLabel>Step 1 — Your résumé</StepLabel>
-
-          {isLoadingResume ? (
-            <p className="py-8 text-center text-ink-secondary">Loading…</p>
-          ) : existingResumeKey && useExistingResume && !resumeFile ? (
-            <div className="mt-5 space-y-3">
-              <Card className="px-5 py-4.5">
-                <div className="flex items-center gap-3.5">
-                  <FileText size={20} strokeWidth={1.5} className="shrink-0 text-ink-secondary" />
-                  <div className="min-w-0">
-                    <div className="truncate text-[15px] font-medium text-ink">
-                      {resumeFileName(existingResumeKey)}
-                    </div>
-                    <div className="mt-0.5 text-sm text-ink-muted">
-                      On file — used unless you replace it below
-                    </div>
-                  </div>
-                </div>
-              </Card>
-              <ResumeUpload
-                file={resumeFile}
-                onFileSelect={(file) => {
-                  setResumeFile(file);
-                  if (file) {
-                    setUseExistingResume(false);
-                  }
-                }}
-                disabled={isSubmitting}
-              />
-            </div>
-          ) : (
-            <div className="mt-5">
-              <ResumeUpload
-                file={resumeFile}
-                onFileSelect={setResumeFile}
-                disabled={isSubmitting}
-              />
-            </div>
-          )}
-        </section>
-
-        <section className="mt-14">
-          <StepLabel>Step 2 — The job posting</StepLabel>
-
-          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <Input
-              label="Job title"
-              placeholder="Senior software engineer"
-              value={formData.jobTitle}
-              onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-7"
+      >
+        <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:flex-1">
+          <FormSection step="01" title="Résumé" aside={resumeReady && <ReadyPill />}>
+            <ResumeUpload
+              file={resumeFile}
+              onFileSelect={setResumeFile}
+              resumeOnFile={resumeOnFile}
               disabled={isSubmitting}
-              required
-              helperText={`${formData.jobTitle.length}/200 characters`}
             />
+          </FormSection>
 
-            <Input
-              label="Company (optional)"
-              placeholder="Acme Corp"
-              value={formData.companyName}
-              onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-              disabled={isSubmitting}
-              helperText={formData.companyName ? `${formData.companyName.length}/100 characters` : undefined}
-            />
-          </div>
-
-          <div className="mt-6">
-            <Textarea
-              label="Job description"
-              placeholder="Paste the full posting — responsibilities, requirements, and qualifications."
-              value={formData.jobDescription}
-              onChange={(e) => setFormData({ ...formData, jobDescription: e.target.value })}
-              disabled={isSubmitting}
-              rows={12}
-              required
-              helperText={
-                <span className="flex items-baseline justify-between gap-4">
-                  <span>{formData.jobDescription.length}/3,000 characters</span>
-                  <span>
-                    {formData.jobDescription.length >= 50
-                      ? 'Ready to analyze'
-                      : 'Minimum 50 characters'}
+          <FormSection step="02" title="Job posting">
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <Input
+                label="Job title"
+                labelAside={
+                  <span className={COUNTER}>
+                    {formData.jobTitle.length} / {JOB_TITLE_MAX}
                   </span>
+                }
+                placeholder="Senior Software Engineer"
+                value={formData.jobTitle}
+                onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+                disabled={isSubmitting}
+                required
+              />
+
+              <Input
+                label="Company"
+                labelAside={
+                  formData.companyName ? (
+                    <span className={COUNTER}>
+                      {formData.companyName.length} / {COMPANY_MAX}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-ink-muted">Optional</span>
+                  )
+                }
+                placeholder="Acme Corp"
+                value={formData.companyName}
+                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Textarea
+                label="Job description"
+                labelAside={
+                  <PasteButton
+                    onClick={handlePaste}
+                    disabled={isSubmitting}
+                    className="hidden sm:inline-flex"
+                  />
+                }
+                placeholder="Paste the whole listing, including responsibilities, requirements and nice-to-haves. Formatting doesn’t matter."
+                value={formData.jobDescription}
+                onChange={(e) => setFormData({ ...formData, jobDescription: e.target.value })}
+                disabled={isSubmitting}
+                rows={12}
+                className="min-h-60 sm:min-h-75"
+                required
+              />
+              <div className="flex items-center justify-between gap-3">
+                <PasteButton onClick={handlePaste} disabled={isSubmitting} className="sm:hidden" />
+                <DescriptionMeter length={descriptionLength} />
+                <span className={COUNTER}>
+                  {descriptionLength.toLocaleString('en-US')} / 3,000 · min {DESCRIPTION_MIN}
                 </span>
-              }
-            />
-          </div>
-        </section>
-
-        {error && (
-          <div className="mt-8">
-            <Alert variant="error">{error}</Alert>
-          </div>
-        )}
-
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-6 border-t border-hairline pt-6">
-          <span className="text-sm text-ink-muted">
-            {rateLimit
-              ? `${rateLimit.remaining} / ${rateLimit.limit} evaluations remaining this hour`
-              : ''}
-          </span>
-          <div className="flex items-center gap-5">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => router.push('/dashboard')}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={isSubmitting}
-              isLoading={isSubmitting}
-            >
-              {isSubmitting ? 'Evaluating' : 'Evaluate match'}
-            </Button>
-          </div>
+              </div>
+            </div>
+          </FormSection>
         </div>
+
+        <aside className="flex flex-col gap-4 lg:w-[380px] lg:shrink-0">
+          <div className="flex flex-col gap-3 rounded-lg bg-ink p-4.5 text-page sm:gap-4.5 sm:p-6">
+            <span className="font-mono text-[10px] tracking-[0.04em] text-accent-soft sm:text-[11px]">
+              YOUR REPORT WILL INCLUDE
+            </span>
+            <p className="text-[13px] leading-relaxed text-page/85 sm:hidden">
+              Overall and sub-scores, a met / partial / missing check for each requirement with
+              the line from your résumé, and suggested fixes.
+            </p>
+            <ol className="hidden flex-col gap-3.5 sm:flex">
+              {REPORT_ITEMS.map((item, index) => (
+                <li key={item.title} className="flex items-start gap-3">
+                  <span className="shrink-0 pt-px font-mono text-xs text-accent-bright">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <span className="flex flex-col gap-[3px]">
+                    <span className="text-sm font-semibold">{item.title}</span>
+                    <span className="text-[13px] leading-normal text-page/70">{item.detail}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="flex flex-col gap-2.5 pt-1 sm:gap-3.5 sm:rounded-lg sm:border sm:border-hairline sm:bg-surface sm:p-5 sm:pt-5">
+            {error && <Alert variant="error">{error}</Alert>}
+            <Button type="submit" size="lg" disabled={isSubmitting} isLoading={isSubmitting}>
+              {isSubmitting ? (
+                'Evaluating'
+              ) : (
+                <>
+                  Evaluate match
+                  <ArrowRight
+                    size={16}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                    className="hidden sm:block"
+                  />
+                </>
+              )}
+            </Button>
+            <div className="flex items-center justify-between sm:flex-col sm:items-stretch sm:gap-3.5">
+              <Link
+                href="/dashboard"
+                aria-disabled={isSubmitting}
+                className={cn(
+                  'rounded-sm px-1 py-2.5 text-sm text-ink-secondary transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:self-center sm:px-2.5 sm:py-1.5',
+                  isSubmitting && 'pointer-events-none opacity-50',
+                )}
+              >
+                Cancel
+              </Link>
+              {rateLimit && <ChecksLeft rateLimit={rateLimit} />}
+            </div>
+          </div>
+        </aside>
       </form>
     </div>
   );
 }
 
-function StepLabel({ children }: { children: React.ReactNode }) {
+function FormSection({
+  step,
+  title,
+  aside,
+  children,
+}: {
+  step: string;
+  title: string;
+  aside?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="border-b border-hairline pb-3.5 text-[13px] font-medium tracking-[0.1em] uppercase text-ink-muted">
+    <section className="flex flex-col gap-4 rounded-lg border border-hairline bg-surface p-4.5 sm:gap-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <span
+            aria-hidden="true"
+            className="inline-flex size-7 items-center justify-center rounded-full bg-ink font-mono text-[11px] text-white sm:size-7.5 sm:text-xs"
+          >
+            {step}
+          </span>
+          <h2 className="text-xl tracking-[-0.02em] text-ink sm:text-[22px]">{title}</h2>
+        </div>
+        {aside}
+      </div>
       {children}
+    </section>
+  );
+}
+
+function ReadyPill() {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-wash px-2.5 py-1 text-[11px] font-semibold text-accent-hover sm:py-[5px] sm:text-xs">
+      <Check size={12} strokeWidth={3} aria-hidden="true" className="hidden sm:block" />
+      Ready
+    </span>
+  );
+}
+
+function PasteButton({
+  onClick,
+  disabled,
+  className,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        'inline-flex h-10 items-center gap-1.5 rounded-full border border-hairline-strong bg-surface px-3 text-[13px] text-ink transition-colors hover:border-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50 sm:h-8.5',
+        className,
+      )}
+    >
+      <Clipboard size={14} strokeWidth={1.8} aria-hidden="true" />
+      <span className="sm:hidden">Paste</span>
+      <span className="hidden sm:inline">Paste from clipboard</span>
+    </button>
+  );
+}
+
+// Fills toward the 3,000-character limit; turns accent once past the minimum.
+function DescriptionMeter({ length }: { length: number }) {
+  const percent = Math.min(length / DESCRIPTION_MAX, 1) * 100;
+
+  return (
+    <div aria-hidden="true" className="hidden h-1 max-w-[220px] flex-1 overflow-hidden rounded-full bg-track sm:block">
+      <div
+        className={cn('h-full rounded-full', length >= DESCRIPTION_MIN ? 'bg-accent' : 'bg-ink-muted')}
+        style={{ width: `${percent}%` }}
+      />
     </div>
   );
 }
 
-// Keys are `resumes/<userId>/<timestamp>-<original name>`.
-function resumeFileName(resumeKey: string): string {
-  const segment = resumeKey.split('/').pop() ?? resumeKey;
-  return segment.replace(/^\d+-/, '');
+function ChecksLeft({ rateLimit }: { rateLimit: RateLimitResult }) {
+  return (
+    <>
+      <span className={cn(COUNTER, 'sm:hidden')}>
+        {rateLimit.remaining} / {rateLimit.limit} checks left this hour
+      </span>
+      <div className="hidden flex-col gap-2 border-t border-track pt-3.5 sm:flex">
+        <div className="flex justify-between gap-3 font-mono text-[11px] tracking-[0.03em] text-ink-muted">
+          <span>HOURLY CHECKS</span>
+          <span className="text-ink">
+            {rateLimit.remaining} / {rateLimit.limit} left
+          </span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-track">
+          <div
+            className="h-full rounded-full bg-accent"
+            style={{ width: `${(rateLimit.remaining / rateLimit.limit) * 100}%` }}
+          />
+        </div>
+      </div>
+    </>
+  );
 }

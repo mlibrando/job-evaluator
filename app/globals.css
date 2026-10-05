@@ -28,6 +28,8 @@
   --color-accent: #2f4bff;
   --color-accent-hover: #2337d6;
   --color-accent-wash: #e6eaff;
+  /* Selected-file card fill. */
+  --color-accent-tint: #fafbff;
   /* Accent text on the dark (ink) panels. */
   --color-accent-soft: #9fb0ff;
   /* Score-ring stroke on the dark (ink) panels. */
