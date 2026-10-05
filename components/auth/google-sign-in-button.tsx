@@ -1,8 +1,11 @@
 import { signIn } from '@/lib/auth';
 import { Button } from '@/components/ui';
+import { cn } from '@/lib/utils/cn';
 
 interface GoogleSignInButtonProps {
   size?: 'sm' | 'md' | 'lg';
+  variant?: 'primary' | 'ink';
+  className?: string;
 }
 
 /**
@@ -11,16 +14,31 @@ interface GoogleSignInButtonProps {
  * it twice (hero + bottom CTA); /login keeps its own existing markup, since
  * it isn't part of this design pass.
  */
-export function GoogleSignInButton({ size = 'md' }: GoogleSignInButtonProps) {
+export function GoogleSignInButton({
+  size = 'md',
+  variant = 'primary',
+  className,
+}: GoogleSignInButtonProps) {
   return (
     <form
+      className={className}
       action={async () => {
         'use server';
         await signIn('google', { redirectTo: '/dashboard' });
       }}
     >
-      <Button variant="primary" size={size}>
-        <GoogleIcon />
+      <Button
+        variant={variant}
+        size={size}
+        className={cn(variant === 'ink' && 'w-full gap-3 pr-[22px] pl-2')}
+      >
+        {variant === 'ink' ? (
+          <span className="flex size-9 items-center justify-center rounded-full bg-white">
+            <GoogleIcon />
+          </span>
+        ) : (
+          <GoogleIcon />
+        )}
         Sign in with Google
       </Button>
     </form>
