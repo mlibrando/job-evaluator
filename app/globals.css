@@ -30,6 +30,8 @@
   --color-accent-wash: #e6eaff;
   /* Accent text on the dark (ink) panels. */
   --color-accent-soft: #9fb0ff;
+  /* Score-ring stroke on the dark (ink) panels. */
+  --color-accent-bright: #6f84ff;
 
   /* Semantic */
   --color-danger: #b23a0b;
