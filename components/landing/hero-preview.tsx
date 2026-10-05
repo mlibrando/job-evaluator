@@ -46,6 +46,7 @@ export function HeroPreview() {
   return (
     <div
       role="img"
+      data-hero-preview
       aria-label={`Sample Fitly report for a Senior Backend Engineer role: ${SAMPLE_OVERALL} out of 100, with ${SAMPLE_SUB_SCORES.map(({ label, value }) => `${label.toLowerCase()} ${value}`).join(', ')}, and each requirement marked met, partial or missing.`}
       className="relative pb-14 sm:pb-[72px]"
     >
@@ -119,7 +120,11 @@ export function HeroPreview() {
         </div>
       </div>
 
-      <div className="absolute -right-1.5 bottom-0 flex w-[250px] flex-col gap-1.5 rounded bg-ink px-4 py-3.5 text-white shadow-[0_20px_40px_-20px_rgba(17,18,20,0.5)] sm:right-auto sm:-left-7 sm:w-auto sm:max-w-[300px] sm:gap-2 sm:px-[18px] sm:py-4">
+      <div
+        data-hero-callout
+        data-parallax="36"
+        className="absolute -right-1.5 bottom-0 flex w-[250px] flex-col gap-1.5 rounded bg-ink px-4 py-3.5 text-white shadow-[0_20px_40px_-20px_rgba(17,18,20,0.5)] sm:right-auto sm:-left-7 sm:w-auto sm:max-w-[300px] sm:gap-2 sm:px-[18px] sm:py-4"
+      >
         <span className="font-mono text-[10px] tracking-[0.04em] text-accent-soft sm:text-[11px]">
           SUGGESTED FIX
         </span>

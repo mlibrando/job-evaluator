@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { HeroPreview } from '@/components/landing/hero-preview';
+import { LandingMotion } from '@/components/landing/landing-motion';
 import { SAMPLE_OVERALL, SAMPLE_SUB_SCORES, SAMPLE_WEIGHTED_TOTAL } from '@/components/landing/sample';
 import { STATUS_LABELS, STATUS_TEXT, type RequirementStatus } from '@/components/landing/status';
 import { LandingHeader } from '@/components/layout/landing-header';
@@ -76,19 +77,24 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-page">
       <LandingHeader />
+      <LandingMotion />
+      <noscript>
+        <style>{'[data-hero-item],[data-hero-preview],[data-hero-callout],[data-reveal],[data-reveal-item]{opacity:1!important}[data-draw]{transform:none!important}'}</style>
+      </noscript>
 
       <main className="flex-1">
         <section
+          data-hero
           className={`${WRAP} flex flex-col gap-10 pt-11 pb-10 md:pt-[88px] md:pb-24 xl:flex-row xl:items-center xl:gap-14`}
         >
           <div className="flex min-w-0 flex-col gap-[22px] md:gap-7 xl:flex-1">
-            <h1 className="m-0 text-[44px] leading-none font-extrabold tracking-[-0.035em] md:text-[68px] md:leading-[0.98]">
+            <h1 data-hero-item className="m-0 text-[44px] leading-none font-extrabold tracking-[-0.035em] md:text-[68px] md:leading-[0.98]">
               Check your résumé against the job before you apply.
             </h1>
-            <p className="m-0 max-w-[480px] text-base leading-[1.55] text-ink-secondary md:text-[19px]">
+            <p data-hero-item className="m-0 max-w-[480px] text-base leading-[1.55] text-ink-secondary md:text-[19px]">
               Fitly evaluates your résumé against a job description using a standardized requirement rubric. It objectively maps your strengths and qualification gaps to calculate a reliable, repeatable fit score.
             </p>
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3">
+            <div data-hero-item className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3">
               <GoogleSignInButton variant="ink" size="lg" />
               <a
                 href="#report"
@@ -99,14 +105,14 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="min-w-0 xl:flex-[1.3]">
+          <div data-parallax="60" className="min-w-0 xl:flex-[1.3]">
             <HeroPreview />
           </div>
         </section>
 
         <section id="report" className="scroll-mt-4 border-t border-hairline">
           <div className={`${WRAP} flex flex-col gap-14 py-16 md:gap-24 md:pt-[104px] md:pb-28`}>
-            <h2 className={cn(SECTION_HEADING, 'max-w-[620px]')}>
+            <h2 data-reveal className={cn(SECTION_HEADING, 'max-w-[620px]')}>
               Scores are tied to specific lines on your résumé.
             </h2>
 
@@ -184,7 +190,10 @@ export default function Home() {
                       <span className="text-sm text-white/80 md:text-base">
                         {SAMPLE_WEIGHTED_TOTAL.toFixed(1)} →
                       </span>
-                      <span className="font-display text-5xl leading-none font-extrabold tracking-[-0.03em] md:text-[64px]">
+                      <span
+                        data-count={SAMPLE_OVERALL}
+                        className="font-display text-5xl leading-none font-extrabold tracking-[-0.03em] md:text-[64px]"
+                      >
                         {SAMPLE_OVERALL}
                       </span>
                     </span>
@@ -223,8 +232,9 @@ export default function Home() {
                         )}
                       >
                         <span
+                          data-count={score}
                           className={cn(
-                            'w-9 font-display text-xl font-extrabold md:w-11 md:text-[22px]',
+                            'w-9 font-display tabular-nums text-xl font-extrabold md:w-11 md:text-[22px]',
                             HISTORY_SCORE_TEXT[getScoreTone(score)]
                           )}
                         >
@@ -246,20 +256,20 @@ export default function Home() {
 
         <section id="how" className="scroll-mt-4 border-t border-hairline">
           <div className={`${WRAP} flex flex-col gap-7 py-14 md:gap-12 md:py-24`}>
-            <h2 className={SECTION_HEADING}>How it works</h2>
-            <ol className="grid grid-cols-1 gap-7 md:grid-cols-3 md:gap-5">
+            <h2 data-reveal className={SECTION_HEADING}>How it works</h2>
+            <ol data-reveal-group className="grid grid-cols-1 gap-7 md:grid-cols-3 md:gap-5">
               {STEPS.map(({ title, description }, i) => (
-                <li
-                  key={title}
-                  className="flex flex-col gap-2.5 border-t-2 border-ink pt-4 md:gap-3.5 md:pt-5"
-                >
-                  <span className="font-mono text-xs text-accent-hover md:text-[13px]">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <h3 className="m-0 text-xl md:text-2xl">{title}</h3>
-                  <p className="m-0 text-sm leading-[1.55] text-ink-secondary md:text-[15px]">
-                    {description}
-                  </p>
+                <li key={title} className="relative flex flex-col gap-2.5 pt-4 md:gap-3.5 md:pt-5">
+                  <span data-draw aria-hidden="true" className="absolute inset-x-0 top-0 h-0.5 origin-left bg-ink" />
+                  <div data-reveal-item className="flex flex-col gap-2.5 md:gap-3.5">
+                    <span className="font-mono text-xs text-accent-hover md:text-[13px]">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <h3 className="m-0 text-xl md:text-2xl">{title}</h3>
+                    <p className="m-0 text-sm leading-[1.55] text-ink-secondary md:text-[15px]">
+                      {description}
+                    </p>
+                  </div>
                 </li>
               ))}
             </ol>
@@ -268,7 +278,7 @@ export default function Home() {
 
         <section id="built" className="scroll-mt-4 bg-ink text-page">
           <div className={`${WRAP} flex flex-col gap-6 py-16 md:gap-14 md:py-[104px]`}>
-            <div className="flex flex-col gap-6 md:flex-row md:flex-wrap md:items-end md:justify-between md:gap-8">
+            <div data-reveal className="flex flex-col gap-6 md:flex-row md:flex-wrap md:items-end md:justify-between md:gap-8">
               <div className="flex max-w-[640px] flex-col gap-6 md:gap-4">
                 <span className="font-mono text-[11px] tracking-[0.04em] text-accent-soft md:text-xs">
                   HOW IT&apos;S BUILT
@@ -281,13 +291,14 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div data-reveal-group className="flex flex-col gap-3">
               <div className="flex flex-col gap-2 md:flex-row md:items-stretch md:gap-3">
                 {PIPELINE.map(({ label, title, description }, i) => {
                   const isModel = i === PIPELINE.length - 1;
                   return (
                     <div key={label} className="contents">
                       <div
+                        data-reveal-item
                         className={cn(
                           'flex flex-col gap-1.5 rounded border p-4 md:flex-1 md:gap-2.5 md:rounded-[14px] md:p-5',
                           isModel ? 'border-accent bg-accent/12' : 'border-white/10'
@@ -305,7 +316,7 @@ export default function Home() {
                         <span className="text-[13px] leading-normal text-page/70">{description}</span>
                       </div>
                       {!isModel && (
-                        <div className="flex shrink-0 items-center justify-center text-ink-secondary" aria-hidden="true">
+                        <div data-reveal-item className="flex shrink-0 items-center justify-center text-ink-secondary" aria-hidden="true">
                           <ArrowDown size={20} strokeWidth={1.6} className="md:hidden" />
                           <ArrowRight size={24} strokeWidth={1.6} className="hidden md:block" />
                         </div>
@@ -319,6 +330,7 @@ export default function Home() {
                 {INFRA.map(({ short }) => (
                   <li
                     key={short}
+                    data-reveal-item
                     className="rounded-full border border-white/10 px-3 py-2 font-mono text-xs"
                   >
                     {short}
@@ -329,6 +341,7 @@ export default function Home() {
                 {INFRA.map(({ label, title }) => (
                   <li
                     key={label}
+                    data-reveal-item
                     className="flex flex-1 flex-col gap-2.5 rounded-[14px] border border-white/10 p-5"
                   >
                     <span className="font-mono text-[11px] text-page/50 uppercase">{label}</span>
@@ -338,7 +351,7 @@ export default function Home() {
               </ul>
             </div>
 
-            <div className="flex flex-col gap-[18px] border-t border-white/10 pt-7 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-8 md:pt-10">
+            <div data-reveal className="flex flex-col gap-[18px] border-t border-white/10 pt-7 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-8 md:pt-10">
               <div className="flex items-center gap-3.5 md:flex-[1_1_420px] md:gap-[18px]">
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-accent font-display text-xl font-extrabold text-white md:size-14 md:text-[22px]">
                   M
@@ -363,14 +376,19 @@ export default function Home() {
           </div>
         </section>
 
-        <section className={`${WRAP} flex flex-col items-center gap-5 py-16 text-center md:gap-7 md:py-28`}>
-          <h2 className="m-0 max-w-[720px] text-4xl leading-none font-extrabold tracking-[-0.035em] md:text-[56px]">
+        <section
+          data-reveal-group
+          className={`${WRAP} flex flex-col items-center gap-5 py-16 text-center md:gap-7 md:py-28`}
+        >
+          <h2 data-reveal-item className="m-0 max-w-[720px] text-4xl leading-none font-extrabold tracking-[-0.035em] md:text-[56px]">
             Got a posting open in another tab?
           </h2>
-          <p className="m-0 text-[15px] text-ink-secondary md:text-[17px]">
+          <p data-reveal-item className="m-0 text-[15px] text-ink-secondary md:text-[17px]">
             Check it against your résumé before you write the cover letter.
           </p>
-          <GoogleSignInButton variant="ink" size="lg" className="self-stretch sm:self-auto" />
+          <div data-reveal-item className="flex self-stretch sm:self-auto">
+            <GoogleSignInButton variant="ink" size="lg" className="flex-1" />
+          </div>
         </section>
       </main>
 
@@ -419,9 +437,12 @@ function FeatureRow({
   textFirstOnMobile = false,
 }: FeatureRowProps) {
   return (
-    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-14">
-      <div className="min-w-0 lg:flex-[1.6]">{media}</div>
+    <div data-reveal-group className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-14">
+      <div data-reveal-item className="min-w-0 lg:flex-[1.6]">
+        {media}
+      </div>
       <div
+        data-reveal-item
         className={cn(
           'flex min-w-0 flex-col gap-3 lg:flex-1 lg:gap-3.5',
           textFirstOnMobile && 'order-first',

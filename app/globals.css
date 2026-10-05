@@ -95,3 +95,23 @@
     color: var(--color-ink);
   }
 }
+
+/*
+ * Landing-page motion (components/landing/landing-motion.tsx). Animated
+ * elements start in their "before" state so they don't flash visible before
+ * anime.js takes over; reduced-motion visitors never get hidden, and the
+ * landing page re-shows everything in a <noscript> fallback.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  [data-hero-item],
+  [data-hero-preview],
+  [data-hero-callout],
+  [data-reveal],
+  [data-reveal-item] {
+    opacity: 0;
+  }
+
+  [data-draw] {
+    transform: scaleX(0);
+  }
+}
