@@ -1,5 +1,6 @@
 import { Badge, ScoreRing, SubScoreBar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
+import { SAMPLE_OVERALL, SAMPLE_SUB_SCORES } from './sample';
 import { StatusPill, type RequirementStatus } from './status';
 
 interface PreviewRequirement {
@@ -41,17 +42,11 @@ const REQUIREMENTS: PreviewRequirement[] = [
   },
 ];
 
-const SUB_SCORES = [
-  { label: 'Skills', value: 91 },
-  { label: 'Experience', value: 84 },
-  { label: 'Domain', value: 86 },
-];
-
 export function HeroPreview() {
   return (
     <div
       role="img"
-      aria-label="Sample Fitly report for a Senior Backend Engineer role: 87 out of 100, with skills 91, experience 84 and domain 86, and each requirement marked met, partial or missing."
+      aria-label={`Sample Fitly report for a Senior Backend Engineer role: ${SAMPLE_OVERALL} out of 100, with ${SAMPLE_SUB_SCORES.map(({ label, value }) => `${label.toLowerCase()} ${value}`).join(', ')}, and each requirement marked met, partial or missing.`}
       className="relative pb-14 sm:pb-[72px]"
     >
       <div className="overflow-hidden rounded-lg border border-hairline bg-surface shadow-[0_40px_80px_-40px_rgba(17,18,20,0.35)]">
@@ -84,13 +79,13 @@ export function HeroPreview() {
 
           <div className="flex items-center gap-[18px] sm:flex-wrap sm:gap-7 sm:rounded sm:border sm:border-track sm:bg-surface-subtle sm:p-[18px]">
             <div className="shrink-0 sm:hidden">
-              <ScoreRing score={87} size={88} stroke={9} />
+              <ScoreRing score={SAMPLE_OVERALL} size={88} stroke={9} />
             </div>
             <div className="hidden shrink-0 sm:block">
-              <ScoreRing score={87} size={112} stroke={9} />
+              <ScoreRing score={SAMPLE_OVERALL} size={112} stroke={9} />
             </div>
             <div className="flex flex-1 flex-col gap-2.5 sm:basis-[220px] sm:gap-3">
-              {SUB_SCORES.map(({ label, value }) => (
+              {SAMPLE_SUB_SCORES.map(({ label, value }) => (
                 <SubScoreBar key={label} label={label} value={value} />
               ))}
             </div>

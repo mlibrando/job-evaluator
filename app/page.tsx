@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { HeroPreview } from '@/components/landing/hero-preview';
+import { SAMPLE_OVERALL, SAMPLE_SUB_SCORES, SAMPLE_WEIGHTED_TOTAL } from '@/components/landing/sample';
 import { STATUS_LABELS, STATUS_TEXT, type RequirementStatus } from '@/components/landing/status';
 import { LandingHeader } from '@/components/layout/landing-header';
 import { Wordmark } from '@/components/layout/wordmark';
@@ -18,12 +19,6 @@ const MATCHES: { requirement: string; evidence: string; status: RequirementStatu
   { requirement: 'Owned payment or ledger systems', evidence: 'Led reconciliation service rewrite', status: 'met' },
   { requirement: 'Mentored engineers', evidence: 'Onboarded two juniors, no outcomes listed', status: 'partial' },
   { requirement: 'Go or Rust experience', evidence: 'No mention', status: 'missing' },
-];
-
-const SCORES = [
-  { label: 'Skills', value: 91 },
-  { label: 'Experience', value: 84 },
-  { label: 'Domain', value: 86 },
 ];
 
 const HISTORY = [
@@ -110,121 +105,142 @@ export default function Home() {
         </section>
 
         <section id="report" className="scroll-mt-4 border-t border-hairline">
-          <div className={`${WRAP} flex flex-col gap-6 py-14 md:gap-12 md:py-24`}>
-            <div className="flex flex-col gap-6 md:flex-row md:flex-wrap md:items-end md:justify-between md:gap-8">
-              <h2 className={cn(SECTION_HEADING, 'max-w-[620px]')}>
-                Scores are tied to specific lines on your résumé.
-              </h2>
-            </div>
+          <div className={`${WRAP} flex flex-col gap-14 py-16 md:gap-24 md:pt-[104px] md:pb-28`}>
+            <h2 className={cn(SECTION_HEADING, 'max-w-[620px]')}>
+              Scores are tied to specific lines on your résumé.
+            </h2>
 
-            <div className="grid grid-cols-1 gap-6 md:gap-5 lg:grid-cols-3">
-              <FeatureCard
-                index="01"
-                label="Requirement matching"
-                title="Each requirement is marked met, partial, or missing."
-                className="lg:col-span-2"
-              >
-                <div className="hidden overflow-hidden rounded border border-track md:block">
-                  <div className="flex gap-4 bg-surface-subtle px-4 py-2.5 font-mono text-[11px] text-ink-muted">
-                    <span className="flex-[1.2]">FROM THE POSTING</span>
-                    <span className="flex-1">FROM YOUR RÉSUMÉ</span>
-                    <span className="w-16 text-right">STATUS</span>
-                  </div>
-                  {MATCHES.map(({ requirement, evidence, status }) => (
-                    <div
-                      key={requirement}
-                      className="flex items-center gap-4 border-t border-track px-4 py-3.5 text-[13px]"
-                    >
-                      <span className="flex-[1.2] font-medium">{requirement}</span>
-                      <span className="flex-1 text-ink-secondary">{evidence}</span>
-                      <span className={cn('w-16 text-right font-semibold', STATUS_TEXT[status])}>
-                        {STATUS_LABELS[status]}
-                      </span>
+            <FeatureRow
+              title="Requirement matching"
+              description="Each requirement is marked met, partial, or missing."
+              media={
+                <Figure>
+                  <div className="hidden overflow-hidden rounded border border-track md:block">
+                    <div className="flex gap-4 bg-surface-subtle px-4 py-2.5 font-mono text-[11px] text-ink-muted">
+                      <span className="flex-[1.2]">FROM THE POSTING</span>
+                      <span className="flex-1">FROM YOUR RÉSUMÉ</span>
+                      <span className="w-16 text-right">STATUS</span>
                     </div>
-                  ))}
-                </div>
-                <ul className="flex flex-col gap-2.5 md:hidden">
-                  {MATCHES.map(({ requirement, evidence, status }) => (
-                    <li
-                      key={requirement}
-                      className="flex flex-col gap-1 rounded-[10px] border border-track p-3"
-                    >
-                      <div className="flex justify-between gap-2">
-                        <span className="text-[13px] font-medium">{requirement}</span>
-                        <span className={cn('text-xs font-semibold', STATUS_TEXT[status])}>
+                    {MATCHES.map(({ requirement, evidence, status }) => (
+                      <div
+                        key={requirement}
+                        className="flex items-center gap-4 border-t border-track px-4 py-3.5 text-[13px]"
+                      >
+                        <span className="flex-[1.2] font-medium">{requirement}</span>
+                        <span className="flex-1 text-ink-secondary">{evidence}</span>
+                        <span className={cn('w-16 text-right font-semibold', STATUS_TEXT[status])}>
                           {STATUS_LABELS[status]}
                         </span>
                       </div>
-                      <span className="text-xs text-ink-secondary">{evidence}</span>
-                    </li>
-                  ))}
-                </ul>
-              </FeatureCard>
+                    ))}
+                  </div>
+                  <ul className="flex flex-col gap-2.5 md:hidden">
+                    {MATCHES.map(({ requirement, evidence, status }) => (
+                      <li
+                        key={requirement}
+                        className="flex flex-col gap-1 rounded-[10px] border border-track p-3"
+                      >
+                        <div className="flex justify-between gap-2">
+                          <span className="text-[13px] font-medium">{requirement}</span>
+                          <span className={cn('text-xs font-semibold', STATUS_TEXT[status])}>
+                            {STATUS_LABELS[status]}
+                          </span>
+                        </div>
+                        <span className="text-xs text-ink-secondary">{evidence}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Figure>
+              }
+            />
 
-              <div className="flex flex-col gap-[18px] rounded-lg bg-accent p-5 text-white md:justify-between md:gap-7 md:p-7">
-                <CardHeading
-                  index="02"
-                  label="Weighted scoring"
-                  title="Skills, experience, and domain are scored separately."
-                  inverted
-                />
-                <dl className="flex gap-2.5 md:flex-col md:gap-3.5">
-                  {SCORES.map(({ label, value }, i) => (
+            <FeatureRow
+              title="Weighted scoring"
+              description="Skills, experience, and domain are scored separately."
+              mediaSide="right"
+              textFirstOnMobile
+              media={
+                <div className="flex flex-col rounded-lg bg-accent p-5 text-white tabular-nums md:px-10 md:py-9">
+                  {SAMPLE_SUB_SCORES.map(({ label, value, weight }, i) => (
                     <div
                       key={label}
                       className={cn(
-                        'flex flex-1 flex-col-reverse gap-0.5 border-t border-white/30 pt-2.5 md:flex-row md:items-baseline md:justify-between md:border-white/25 md:pt-0 md:pb-2.5',
-                        'md:border-t-0',
-                        i < SCORES.length - 1 && 'md:border-b'
+                        'grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-x-4 border-b py-3 md:gap-x-7 md:py-3.5',
+                        i === SAMPLE_SUB_SCORES.length - 1 ? 'border-white/60' : 'border-white/25'
                       )}
                     >
-                      <dt className="text-xs md:text-sm">{label}</dt>
-                      <dd className="m-0 font-display text-[28px] leading-tight font-extrabold md:text-[32px]">
-                        {value}
-                      </dd>
+                      <span className="text-sm md:text-base">{label}</span>
+                      <span className="text-sm text-white/80 md:text-base">
+                        {value} × {weight.toFixed(2)}
+                      </span>
+                      <span className="min-w-12 text-right text-lg font-semibold md:min-w-16 md:text-[22px]">
+                        {(value * weight).toFixed(1)}
+                      </span>
                     </div>
                   ))}
-                </dl>
-              </div>
+                  <div className="flex items-baseline justify-between gap-4 pt-3.5 md:pt-[18px]">
+                    <span className="text-sm md:text-base">Overall</span>
+                    <span className="flex items-baseline gap-3.5">
+                      <span className="text-sm text-white/80 md:text-base">
+                        {SAMPLE_WEIGHTED_TOTAL.toFixed(1)} →
+                      </span>
+                      <span className="font-display text-5xl leading-none font-extrabold tracking-[-0.03em] md:text-[64px]">
+                        {SAMPLE_OVERALL}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              }
+            />
 
-              <FeatureCard index="03" label="Plain-language summary" title="A short, actionable written summary." hideTitleOnMobile>
-                <p className="m-0 text-sm leading-relaxed text-ink md:rounded md:border md:border-track md:bg-surface-subtle md:p-[18px] md:text-[15px]">
-                  You match the core backend work and the payments domain well. A hiring manager will
-                  probably notice that Kubernetes and Go are missing. It&apos;s worth applying. If you
-                  have any container experience, mention it in your cover note.
-                </p>
-              </FeatureCard>
+            <FeatureRow
+              title="Plain-language summary"
+              description="A short, actionable written summary."
+              media={
+                <Figure>
+                  <p className="m-0 rounded border border-track bg-surface-subtle p-4 text-sm leading-relaxed text-ink md:p-[18px] md:text-[15px]">
+                    You match the core backend work and the payments domain well. A hiring manager
+                    will probably notice that Kubernetes and Go are missing. It&apos;s worth applying.
+                    If you have any container experience, mention it in your cover note.
+                  </p>
+                </Figure>
+              }
+            />
 
-              <FeatureCard
-                index="04"
-                label="History"
-                title="Past evaluations stay in your history."
-                className="lg:col-span-2"
-              >
-                <ul className="flex flex-col">
-                  {HISTORY.map(({ score, title, company, date }) => (
-                    <li
-                      key={title}
-                      className="flex items-center gap-3.5 border-t border-track py-2.5 md:gap-4 md:py-3"
-                    >
-                      <span
+            <FeatureRow
+              title="History"
+              description="Past evaluations stay in your history."
+              mediaSide="right"
+              media={
+                <Figure>
+                  <ul className="flex flex-col">
+                    {HISTORY.map(({ score, title, company, date }, i) => (
+                      <li
+                        key={title}
                         className={cn(
-                          'w-9 font-display text-xl font-extrabold md:w-11 md:text-[22px]',
-                          HISTORY_SCORE_TEXT[getScoreTone(score)]
+                          'flex items-center gap-3.5 py-2.5 md:gap-4 md:py-3',
+                          i > 0 && 'border-t border-track'
                         )}
                       >
-                        {score}
-                      </span>
-                      <div className="flex flex-1 flex-col">
-                        <span className="text-[13px] font-medium md:text-sm">{title}</span>
-                        <span className="text-xs text-ink-secondary">{company}</span>
-                      </div>
-                      <span className="hidden font-mono text-[11px] text-ink-muted md:inline">{date}</span>
-                    </li>
-                  ))}
-                </ul>
-              </FeatureCard>
-            </div>
+                        <span
+                          className={cn(
+                            'w-9 font-display text-xl font-extrabold md:w-11 md:text-[22px]',
+                            HISTORY_SCORE_TEXT[getScoreTone(score)]
+                          )}
+                        >
+                          {score}
+                        </span>
+                        <div className="flex flex-1 flex-col">
+                          <span className="text-[13px] font-medium md:text-sm">{title}</span>
+                          <span className="text-xs text-ink-secondary">{company}</span>
+                        </div>
+                        <span className="hidden font-mono text-[11px] text-ink-muted md:inline">{date}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Figure>
+              }
+            />
           </div>
         </section>
 
@@ -385,51 +401,45 @@ export default function Home() {
   );
 }
 
-interface CardHeadingProps {
-  index: string;
-  label: string;
+interface FeatureRowProps {
   title: string;
-  inverted?: boolean;
-  hideTitleOnMobile?: boolean;
+  description: string;
+  media: ReactNode;
+  /** Side the media sits on from `lg` up. Below that it stacks above the text. */
+  mediaSide?: 'left' | 'right';
+  /** Stack the text above the media below `lg` instead. */
+  textFirstOnMobile?: boolean;
 }
 
-function CardHeading({ index, label, title, inverted = false, hideTitleOnMobile = false }: CardHeadingProps) {
+function FeatureRow({
+  title,
+  description,
+  media,
+  mediaSide = 'left',
+  textFirstOnMobile = false,
+}: FeatureRowProps) {
   return (
-    <div className="flex flex-col gap-3.5 md:gap-1.5">
-      <span
+    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-14">
+      <div className="min-w-0 lg:flex-[1.6]">{media}</div>
+      <div
         className={cn(
-          'font-mono text-[10px] tracking-[0.04em] uppercase md:text-[11px]',
-          inverted ? 'text-white/80' : 'text-accent-hover'
+          'flex min-w-0 flex-col gap-3 lg:flex-1 lg:gap-3.5',
+          textFirstOnMobile && 'order-first',
+          mediaSide === 'right' ? 'lg:order-first' : 'lg:order-none'
         )}
       >
-        {index} · {label}
-      </span>
-      <h3
-        className={cn(
-          'm-0 text-[21px] tracking-[-0.02em] md:text-2xl',
-          hideTitleOnMobile && 'hidden md:block'
-        )}
-      >
-        {title}
-      </h3>
+        <h3 className="m-0 text-[22px] leading-[1.2] tracking-[-0.02em] md:text-[30px] md:leading-[1.15]">
+          {title}
+        </h3>
+        <p className="m-0 text-[15px] leading-relaxed text-ink-secondary md:text-base">{description}</p>
+      </div>
     </div>
   );
 }
 
-interface FeatureCardProps extends Omit<CardHeadingProps, 'inverted'> {
-  className?: string;
-  children: ReactNode;
-}
-
-function FeatureCard({ className, children, ...heading }: FeatureCardProps) {
+function Figure({ children }: { children: ReactNode }) {
   return (
-    <div
-      className={cn(
-        'flex min-w-0 flex-col gap-3.5 rounded-lg border border-hairline bg-surface p-5 md:gap-5 md:p-7',
-        className
-      )}
-    >
-      <CardHeading {...heading} />
+    <div className="rounded-lg border border-hairline bg-surface p-4 shadow-[0_30px_60px_-36px_rgba(17,18,20,0.35)] md:p-6">
       {children}
     </div>
   );
