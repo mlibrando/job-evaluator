@@ -41,15 +41,15 @@ const HISTORY_SCORE_TEXT: Record<ScoreTone, string> = {
 const STEPS = [
   {
     title: 'Upload your résumé',
-    description: "A PDF, once. It's stored privately and reused for every evaluation after that.",
+    description: "Upload a PDF once. It's stored privately and reused for later evaluations.",
   },
   {
     title: 'Paste the job posting',
-    description: 'Copy the whole listing from LinkedIn, a careers page, wherever. No formatting needed.',
+    description: "Copy the full listing text from wherever you found it. Formatting doesn't matter.",
   },
   {
     title: 'Read the report',
-    description: 'Scores, requirement-by-requirement evidence, and a list of what to add or reword.',
+    description: 'Each requirement gets a status, and the report suggests what to add or reword on your résumé.',
   },
 ];
 
@@ -91,11 +91,11 @@ export default function Home() {
               Résumé + job post → fit report
             </span>
             <h1 className="m-0 text-[44px] leading-none font-extrabold tracking-[-0.035em] md:text-[68px] md:leading-[0.98]">
-              Know where you stand before you hit apply.
+              Check your résumé against the job before you apply.
             </h1>
             <p className="m-0 max-w-[480px] text-base leading-[1.55] text-ink-secondary md:text-[19px]">
-              Fitly reads your résumé against a job posting and goes requirement by requirement:
-              what you already cover, where the evidence is thin, and what&apos;s missing outright.
+              Fitly compares your résumé to a job posting one requirement at a time. For each one
+              it points to the part of your résumé that covers it, or tells you nothing does.
             </p>
             <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3">
               <GoogleSignInButton variant="ink" size="lg" />
@@ -108,8 +108,7 @@ export default function Home() {
             </div>
             <ul className="hidden flex-wrap gap-[18px] font-mono text-xs text-ink-secondary sm:flex">
               <li>PDF résumés</li>
-              <li>Any job posting</li>
-              <li>Saved to your history</li>
+              <li>Reports saved to your history</li>
             </ul>
           </div>
 
@@ -122,11 +121,11 @@ export default function Home() {
           <div className={`${WRAP} flex flex-col gap-6 py-14 md:gap-12 md:py-24`}>
             <div className="flex flex-col gap-6 md:flex-row md:flex-wrap md:items-end md:justify-between md:gap-8">
               <h2 className={cn(SECTION_HEADING, 'max-w-[620px]')}>
-                Every score comes with the line from your résumé behind it.
+                Scores are tied to specific lines on your résumé.
               </h2>
               <p className="m-0 max-w-[380px] text-[15px] leading-relaxed text-ink-secondary md:text-base">
-                A number on its own doesn&apos;t tell you what to fix. Each report breaks the posting
-                into individual requirements and checks them one at a time.
+                The overall score helps when you&apos;re comparing roles. The requirement list is
+                what tells you what to change.
               </p>
             </div>
 
@@ -134,7 +133,7 @@ export default function Home() {
               <FeatureCard
                 index="01"
                 label="Requirement matching"
-                title="Met, partial, or missing. With evidence."
+                title="Each requirement is marked met, partial, or missing."
                 className="lg:col-span-2"
               >
                 <div className="hidden overflow-hidden rounded border border-track md:block">
@@ -178,7 +177,7 @@ export default function Home() {
                 <CardHeading
                   index="02"
                   label="Weighted scoring"
-                  title="Three scores, not one vague number."
+                  title="Skills, experience, and domain are scored separately."
                   inverted
                 />
                 <dl className="flex gap-2.5 md:flex-col md:gap-3.5">
@@ -200,18 +199,18 @@ export default function Home() {
                 </dl>
               </div>
 
-              <FeatureCard index="03" label="Plain-language summary" title="The short version." hideTitleOnMobile>
+              <FeatureCard index="03" label="Plain-language summary" title="A short written summary." hideTitleOnMobile>
                 <p className="m-0 text-sm leading-relaxed text-ink md:rounded md:border md:border-track md:bg-surface-subtle md:p-[18px] md:text-[15px]">
-                  You&apos;re a strong match on the core backend work and the payments domain. The two
-                  things a hiring manager will notice are no Kubernetes and no Go. Worth applying, but
-                  address the first one in your cover note.
+                  You match the core backend work and the payments domain well. A hiring manager will
+                  probably notice that Kubernetes and Go are missing. It&apos;s worth applying. If you
+                  have any container experience, mention it in your cover note.
                 </p>
               </FeatureCard>
 
               <FeatureCard
                 index="04"
                 label="History"
-                title="Compare the roles you're weighing."
+                title="Past evaluations stay in your history."
                 className="lg:col-span-2"
               >
                 <ul className="flex flex-col">
@@ -243,7 +242,7 @@ export default function Home() {
 
         <section id="how" className="scroll-mt-4 border-t border-hairline">
           <div className={`${WRAP} flex flex-col gap-7 py-14 md:gap-12 md:py-24`}>
-            <h2 className={SECTION_HEADING}>Three steps. About as long as reading the posting.</h2>
+            <h2 className={SECTION_HEADING}>How it works</h2>
             <ol className="grid grid-cols-1 gap-7 md:grid-cols-3 md:gap-5">
               {STEPS.map(({ title, description }, i) => (
                 <li
@@ -270,11 +269,11 @@ export default function Home() {
                 <span className="font-mono text-[11px] tracking-[0.04em] text-accent-soft md:text-xs">
                   HOW IT&apos;S BUILT
                 </span>
-                <h2 className={SECTION_HEADING}>A small product, built end to end.</h2>
+                <h2 className={SECTION_HEADING}>A small app, built end to end.</h2>
               </div>
               <p className="m-0 max-w-[400px] text-[15px] leading-relaxed text-page/70 md:text-base">
-                Auth, file storage, an LLM call that returns structured data, and persistence. The same
-                pieces most SaaS products need, wired up properly.
+                Google sign-in, résumé storage in S3, a Claude API call that returns structured JSON,
+                and saved evaluations in DynamoDB. Most SaaS apps need some version of each.
               </p>
             </div>
 
@@ -365,7 +364,7 @@ export default function Home() {
             Got a posting open in another tab?
           </h2>
           <p className="m-0 text-[15px] text-ink-secondary md:text-[17px]">
-            Run it through Fitly before you write the cover letter.
+            Check it against your résumé before you write the cover letter.
           </p>
           <GoogleSignInButton variant="ink" size="lg" className="self-stretch sm:self-auto" />
         </section>

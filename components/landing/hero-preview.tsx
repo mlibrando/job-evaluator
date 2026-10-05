@@ -36,7 +36,7 @@ const REQUIREMENTS: PreviewRequirement[] = [
     status: 'missing',
     title: 'Kubernetes in production',
     shortTitle: 'Kubernetes in production',
-    evidence: 'Not found anywhere in the résumé',
+    evidence: 'Not mentioned in the résumé',
     onMobile: true,
   },
 ];
@@ -130,7 +130,7 @@ export function HeroPreview() {
         </span>
         <span className="text-xs leading-normal text-page/90 sm:text-[13px]">
           If you ran containers on EKS in your 2024 role, say so.
-          <span className="hidden sm:inline"> It&apos;s the biggest single gap for this posting.</span>
+          <span className="hidden sm:inline"> It&apos;s the largest gap for this posting.</span>
         </span>
       </div>
     </div>
