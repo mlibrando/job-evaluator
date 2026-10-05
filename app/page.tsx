@@ -1,21 +1,14 @@
 import Image from 'next/image';
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { PercentIcon, TargetIcon, ListIcon, HistoryIcon } from '@/components/icons';
+import { LandingHeader } from '@/components/layout/landing-header';
 
 const WRAP = 'mx-auto max-w-[1120px] px-8';
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-page">
-      {/* Header — bare wordmark. No nav, no sign-in link: the CTA lives in the
-          hero and the bottom section, matching the design exactly. */}
-      <header className="border-b border-hairline">
-        <div className={`${WRAP} flex items-center py-5`}>
-          <span className="font-wordmark text-[26px] font-medium tracking-[-0.005em] text-ink">
-            Fitly
-          </span>
-        </div>
-      </header>
+      <LandingHeader />
 
       <main className="flex-1">
         {/* Hero */}
@@ -49,7 +42,7 @@ export default function Home() {
                   src="/hero-evaluation.png"
                   alt="Evaluation result for a Senior Backend Engineer posting: an 87 out of 100 score with skill match, experience, and domain fit sub-scores."
                   width={1120}
-                  height={537}
+                  height={413}
                   className="h-auto w-full"
                   priority
                 />
