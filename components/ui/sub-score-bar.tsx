@@ -19,15 +19,13 @@ export function SubScoreBar({ label, value }: SubScoreBarProps) {
 
   return (
     <div className="w-full">
-      <div className="mb-1.5 flex justify-between">
-        <span className="text-[13px] font-medium uppercase tracking-[0.1em] text-ink-secondary">
-          {label}
-        </span>
-        <span className="text-[13px] font-medium text-ink">{value}</span>
+      <div className="mb-1.5 flex justify-between font-mono text-xs text-ink-secondary">
+        <span className="uppercase">{label}</span>
+        <span>{value}</span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-[3px] bg-track">
+      <div className="h-[7px] overflow-hidden rounded-full bg-track">
         <div
-          className="h-full rounded-[3px]"
+          className="h-full rounded-full"
           style={{
             width: `${animated}%`,
             background: getScoreColor(value),

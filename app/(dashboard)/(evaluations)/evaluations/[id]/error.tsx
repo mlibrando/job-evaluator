@@ -16,9 +16,9 @@ export default function EvaluationError({
   }, [error]);
 
   return (
-    <div className="mx-auto max-w-[1120px] px-8 pt-14 pb-24">
+    <div>
       <div className="mb-10">
-        <h1 className="font-display text-[40px] leading-[1.15] text-ink">
+        <h1 className="font-display text-[34px] leading-[1.1] font-extrabold tracking-[-0.03em] text-ink">
           Error loading evaluation
         </h1>
         <p className="mt-2.5 text-[15px] text-ink-muted">

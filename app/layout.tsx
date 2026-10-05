@@ -1,26 +1,25 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Instrument_Serif, Inter } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import { SessionProvider } from "@/components/auth/session-provider";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
-  weight: ["400", "500"],
+// Display face and wordmark. Variable, with the optical-size axis so large
+// headings tighten up the way the design draws them.
+const bricolageGrotesque = Bricolage_Grotesque({
+  variable: "--font-bricolage-grotesque",
+  axes: ["opsz"],
   subsets: ["latin"],
 });
 
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
-  weight: "400",
+const geist = Geist({
+  variable: "--font-geist",
   subsets: ["latin"],
 });
 
-// Used only for the Fitly wordmark — deliberately a different serif from the
-// display face, per the design.
-const cormorantGaramond = Cormorant_Garamond({
-  variable: "--font-cormorant-garamond",
-  weight: "500",
+// Eyebrow labels, counts and other small tabular text.
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
@@ -37,7 +36,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${instrumentSerif.variable} ${cormorantGaramond.variable} h-full antialiased scroll-smooth`}
+      className={`${bricolageGrotesque.variable} ${geist.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <SessionProvider>{children}</SessionProvider>

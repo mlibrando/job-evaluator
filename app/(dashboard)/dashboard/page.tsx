@@ -5,6 +5,7 @@ import { FileText } from 'lucide-react';
 import { Badge, Button, Card, getScoreTone } from '@/components/ui';
 import { getUserEvaluations } from '@/lib/aws/dynamodb';
 import { getRateLimitStatus } from '@/lib/rate-limit';
+import { resumeFileName } from '@/lib/resume/file-name';
 import type { Evaluation } from '@/types/evaluation';
 
 const EVALUATION_FETCH_LIMIT = 500;
@@ -173,12 +174,6 @@ function countGaps({ analysis }: Evaluation): number {
     return analysis.assessments.filter((a) => a.match === 'none').length;
   }
   return analysis.missingSkills?.length ?? 0;
-}
-
-// Keys are `resumes/<userId>/<timestamp>-<original name>`.
-function resumeFileName(resumeKey: string): string {
-  const segment = resumeKey.split('/').pop() ?? resumeKey;
-  return segment.replace(/^\d+-/, '');
 }
 
 function formatDate(dateString: string): string {

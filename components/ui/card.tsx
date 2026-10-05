@@ -23,8 +23,8 @@ export function Card({
 
   return (
     <div
-      className={`rounded border border-hairline bg-surface ${
-        emphasis ? 'p-10 shadow-score' : paddingStyles[padding]
+      className={`rounded-lg border border-hairline bg-surface ${
+        emphasis ? 'p-8 shadow-score' : paddingStyles[padding]
       } ${className}`}
     >
       {children}

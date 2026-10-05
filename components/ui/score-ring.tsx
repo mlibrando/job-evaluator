@@ -50,10 +50,13 @@ export function ScoreRing({ score, size = 160, stroke = 8 }: ScoreRingProps) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-[56px] leading-none tracking-[-0.02em] text-ink">
+        <span
+          className="font-display leading-none font-extrabold tracking-[-0.04em] text-ink"
+          style={{ fontSize: Math.round(size / 3) }}
+        >
           {score}
         </span>
-        <span className="mt-1 text-sm text-ink-muted">/100</span>
+        <span className="mt-1 font-mono text-[11px] text-ink-muted">/ 100</span>
       </div>
     </div>
   );

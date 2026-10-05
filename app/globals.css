@@ -3,54 +3,59 @@
 /*
  * Fitly design tokens.
  *
- * Ported verbatim from the Claude Design system (ai-job-evaluator-design-system
- * ffd3a329). Declared in @theme so Tailwind v4 emits both the CSS custom
- * properties and matching utilities (bg-page, text-ink, border-hairline,
- * font-display, shadow-score, ...).
+ * Retheme from the Claude Design canvas "Fitly landing redesign" (the
+ * Evaluation + history artboard): grotesque display over Geist body, an
+ * electric-blue accent on a cool off-white ground. Declared in @theme so
+ * Tailwind v4 emits both the CSS custom properties and matching utilities
+ * (bg-page, text-ink, border-hairline, font-display, font-mono, ...).
  *
- * The palette is intentionally light-only — the design system defines no dark
+ * The palette is intentionally light-only — the design defines no dark
  * values, and inventing them would be guesswork.
  */
 @theme {
   /* Surfaces */
-  --color-page: #faf9f6;
+  --color-page: #f3f3ef;
   --color-surface: #ffffff;
-  --color-surface-sunken: #f2f0eb;
+  --color-surface-sunken: #ecece7;
+  --color-surface-subtle: #fafaf7;
 
   /* Ink */
-  --color-ink: #1a1a18;
-  --color-ink-secondary: #6b6a63;
-  --color-ink-muted: #9a988f;
+  --color-ink: #111214;
+  --color-ink-secondary: #5b5e66;
+  --color-ink-muted: #7a7d85;
 
   /* Accent */
-  --color-accent: #0f6e56;
-  --color-accent-hover: #0c5744;
-  --color-accent-wash: #e8f2ee;
+  --color-accent: #2f4bff;
+  --color-accent-hover: #2337d6;
+  --color-accent-wash: #e6eaff;
+  /* Accent text on the dark (ink) panels. */
+  --color-accent-soft: #9fb0ff;
 
   /* Semantic */
-  --color-danger: #a32d2d;
-  --color-danger-wash: #f3e1e1;
-  --color-warn: #854f0b;
-  --color-warn-wash: #f6ecd9;
+  --color-danger: #b23a0b;
+  --color-danger-wash: #fde8df;
+  --color-warn: #8a4b06;
+  --color-warn-wash: #fdf0dc;
 
   /* Lines */
-  --color-hairline: rgba(26, 26, 24, 0.1);
-  --color-hairline-strong: rgba(26, 26, 24, 0.16);
-  --color-track: rgba(26, 26, 24, 0.08);
+  --color-hairline: #dcdcd6;
+  --color-hairline-strong: #c9c9c2;
+  --color-track: #ecece7;
 
   /* Radius */
-  --radius-sm: 6px;
+  --radius-sm: 8px;
   --radius: 12px;
   --radius-lg: 16px;
 
   /* Shadow */
-  --shadow-score: 0 8px 24px rgba(26, 26, 24, 0.06);
-  --shadow-hero: 0 24px 60px rgba(26, 26, 24, 0.1);
+  --shadow-score: 0 8px 24px rgba(17, 18, 20, 0.06);
+  --shadow-hero: 0 24px 60px rgba(17, 18, 20, 0.1);
 
   /* Type */
-  --font-display: var(--font-instrument-serif), Georgia, serif;
-  --font-body: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-wordmark: var(--font-cormorant-garamond), Georgia, serif;
+  --font-display: var(--font-bricolage-grotesque), Georgia, sans-serif;
+  --font-body: var(--font-geist), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-wordmark: var(--font-bricolage-grotesque), Georgia, sans-serif;
 }
 
 /*
@@ -77,7 +82,8 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    font-weight: 400;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   ::selection {

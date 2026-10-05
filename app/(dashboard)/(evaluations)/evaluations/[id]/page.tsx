@@ -1,5 +1,7 @@
-import { auth } from '@/lib/auth';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
+import { auth } from '@/lib/auth';
 import { getEvaluation } from '@/lib/aws/dynamodb';
 import { EvaluationResult } from '@/components/evaluation/evaluation-result';
 
@@ -27,8 +29,16 @@ export default async function EvaluationPage({ params }: EvaluationPageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-[1120px] px-8 pt-14 pb-24">
+    <>
+      {/* The history sidebar is hidden on mobile while viewing a detail. */}
+      <Link
+        href="/history"
+        className="mb-5 inline-flex items-center gap-1.5 text-sm text-ink-secondary hover:text-ink lg:hidden"
+      >
+        <ArrowLeft size={16} strokeWidth={1.75} aria-hidden="true" />
+        All evaluations
+      </Link>
       <EvaluationResult evaluation={evaluation} />
-    </div>
+    </>
   );
 }

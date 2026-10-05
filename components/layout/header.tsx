@@ -9,9 +9,9 @@ import { SignOutButton } from '@/components/auth/sign-out-button';
 import { Button, useDismiss } from '@/components/ui';
 
 const NAV_LINKS = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/evaluate', label: 'New evaluation' },
-  { href: '/history', label: 'History' },
+  { href: '/dashboard', label: 'Dashboard', matches: [] },
+  { href: '/evaluate', label: 'New evaluation', matches: [] },
+  { href: '/history', label: 'History', matches: ['/evaluations'] },
 ];
 
 /**
@@ -44,8 +44,10 @@ export function Header() {
 
           {session && (
             <nav className="hidden items-center gap-7 md:flex">
-              {NAV_LINKS.map(({ href, label }) => {
-                const active = pathname === href || pathname.startsWith(`${href}/`);
+              {NAV_LINKS.map(({ href, label, matches }) => {
+                const active = [href, ...matches].some(
+                  (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+                );
                 return (
                   <Link
                     key={href}
