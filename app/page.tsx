@@ -87,15 +87,11 @@ export default function Home() {
           className={`${WRAP} flex flex-col gap-10 pt-11 pb-10 md:pt-[88px] md:pb-24 xl:flex-row xl:items-center xl:gap-14`}
         >
           <div className="flex min-w-0 flex-col gap-[22px] md:gap-7 xl:flex-1">
-            <span className="self-start rounded-full bg-accent-wash px-2.5 py-1.5 font-mono text-[11px] tracking-[0.04em] text-accent-hover uppercase md:px-3 md:py-[7px] md:text-xs">
-              Résumé + job post → fit report
-            </span>
             <h1 className="m-0 text-[44px] leading-none font-extrabold tracking-[-0.035em] md:text-[68px] md:leading-[0.98]">
               Check your résumé against the job before you apply.
             </h1>
             <p className="m-0 max-w-[480px] text-base leading-[1.55] text-ink-secondary md:text-[19px]">
-              Fitly compares your résumé to a job posting one requirement at a time. For each one
-              it points to the part of your résumé that covers it, or tells you nothing does.
+              Fitly evaluates your résumé against a job description using a standardized requirement rubric. It objectively maps your strengths and qualification gaps to calculate a reliable, repeatable fit score.
             </p>
             <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3">
               <GoogleSignInButton variant="ink" size="lg" />
@@ -106,10 +102,6 @@ export default function Home() {
                 See a sample report
               </a>
             </div>
-            <ul className="hidden flex-wrap gap-[18px] font-mono text-xs text-ink-secondary sm:flex">
-              <li>PDF résumés</li>
-              <li>Reports saved to your history</li>
-            </ul>
           </div>
 
           <div className="min-w-0 xl:flex-[1.3]">
@@ -123,10 +115,6 @@ export default function Home() {
               <h2 className={cn(SECTION_HEADING, 'max-w-[620px]')}>
                 Scores are tied to specific lines on your résumé.
               </h2>
-              <p className="m-0 max-w-[380px] text-[15px] leading-relaxed text-ink-secondary md:text-base">
-                The overall score helps when you&apos;re comparing roles. The requirement list is
-                what tells you what to change.
-              </p>
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:gap-5 lg:grid-cols-3">
@@ -199,7 +187,7 @@ export default function Home() {
                 </dl>
               </div>
 
-              <FeatureCard index="03" label="Plain-language summary" title="A short written summary." hideTitleOnMobile>
+              <FeatureCard index="03" label="Plain-language summary" title="A short, actionable written summary." hideTitleOnMobile>
                 <p className="m-0 text-sm leading-relaxed text-ink md:rounded md:border md:border-track md:bg-surface-subtle md:p-[18px] md:text-[15px]">
                   You match the core backend work and the payments domain well. A hiring manager will
                   probably notice that Kubernetes and Go are missing. It&apos;s worth applying. If you
@@ -273,7 +261,7 @@ export default function Home() {
               </div>
               <p className="m-0 max-w-[400px] text-[15px] leading-relaxed text-page/70 md:text-base">
                 Google sign-in, résumé storage in S3, a Claude API call that returns structured JSON,
-                and saved evaluations in DynamoDB. Most SaaS apps need some version of each.
+                and saved evaluations in DynamoDB.
               </p>
             </div>
 
