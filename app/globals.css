@@ -60,6 +60,43 @@
   --font-body: var(--font-geist), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --font-wordmark: var(--font-bricolage-grotesque), Georgia, sans-serif;
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-rise: rise 0.9s var(--ease-out-expo) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+}
+
+/*
+ * Scroll reveal for the landing page, driven by components/landing/scroll-reveal.tsx.
+ * Elements only enter the pending state once JS has confirmed they're below
+ * the fold, so these rules are inert without it. `--reveal-delay` staggers
+ * siblings that enter together; it's skipped on narrow screens, where cards
+ * stack and arrive one at a time anyway.
+ */
+@layer components {
+  [data-reveal='pending'] {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  [data-reveal='shown'] {
+    transition:
+      opacity 0.8s var(--ease-out-expo),
+      transform 1s var(--ease-out-expo);
+  }
+
+  @media (width >= 48rem) {
+    [data-reveal='shown'] {
+      transition-delay: var(--reveal-delay, 0ms);
+    }
+  }
 }
 
 /*

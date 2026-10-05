@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { ArrowDown, ArrowRight } from 'lucide-react';
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { HeroPreview } from '@/components/landing/hero-preview';
+import { ScrollReveal } from '@/components/landing/scroll-reveal';
 import { STATUS_LABELS, STATUS_TEXT, type RequirementStatus } from '@/components/landing/status';
 import { LandingHeader } from '@/components/layout/landing-header';
 import { Wordmark } from '@/components/layout/wordmark';
@@ -10,6 +11,9 @@ import { GITHUB_PROFILE_URL, GITHUB_REPO_URL } from '@/lib/site';
 import { cn } from '@/lib/utils/cn';
 
 const WRAP = 'mx-auto w-full max-w-[1200px] px-5 md:px-10';
+
+/** Staggered fade-up for the hero, which is on screen at load rather than scrolled to. */
+const HERO_RISE = 'motion-safe:animate-rise';
 
 const SECTION_HEADING =
   'm-0 text-[32px] leading-[1.04] font-extrabold tracking-[-0.03em] md:text-5xl md:leading-[1.02]';
@@ -87,13 +91,13 @@ export default function Home() {
           className={`${WRAP} flex flex-col gap-10 pt-11 pb-10 md:pt-[88px] md:pb-24 xl:flex-row xl:items-center xl:gap-14`}
         >
           <div className="flex min-w-0 flex-col gap-[22px] md:gap-7 xl:flex-1">
-            <h1 className="m-0 text-[44px] leading-none font-extrabold tracking-[-0.035em] md:text-[68px] md:leading-[0.98]">
+            <h1 className={cn(HERO_RISE, 'm-0 text-[44px] leading-none font-extrabold tracking-[-0.035em] md:text-[68px] md:leading-[0.98]')}>
               Check your résumé against the job before you apply.
             </h1>
-            <p className="m-0 max-w-[480px] text-base leading-[1.55] text-ink-secondary md:text-[19px]">
+            <p className={cn(HERO_RISE, 'm-0 max-w-[480px] text-base leading-[1.55] text-ink-secondary [animation-delay:90ms] md:text-[19px]')}>
               Fitly evaluates your résumé against a job description using a standardized requirement rubric. It objectively maps your strengths and qualification gaps to calculate a reliable, repeatable fit score.
             </p>
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3">
+            <div className={cn(HERO_RISE, 'flex flex-col gap-2.5 [animation-delay:180ms] sm:flex-row sm:flex-wrap sm:gap-3')}>
               <GoogleSignInButton variant="ink" size="lg" />
               <a
                 href="#report"
@@ -104,7 +108,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="min-w-0 xl:flex-[1.3]">
+          <div className={cn(HERO_RISE, 'min-w-0 [animation-delay:270ms] xl:flex-[1.3]')}>
             <HeroPreview />
           </div>
         </section>
@@ -112,7 +116,7 @@ export default function Home() {
         <section id="report" className="scroll-mt-4 border-t border-hairline">
           <div className={`${WRAP} flex flex-col gap-6 py-14 md:gap-12 md:py-24`}>
             <div className="flex flex-col gap-6 md:flex-row md:flex-wrap md:items-end md:justify-between md:gap-8">
-              <h2 className={cn(SECTION_HEADING, 'max-w-[620px]')}>
+              <h2 className={cn(SECTION_HEADING, 'max-w-[620px]')} {...reveal()}>
                 Scores are tied to specific lines on your résumé.
               </h2>
             </div>
@@ -123,6 +127,7 @@ export default function Home() {
                 label="Requirement matching"
                 title="Each requirement is marked met, partial, or missing."
                 className="lg:col-span-2"
+                revealOrder={0}
               >
                 <div className="hidden overflow-hidden rounded border border-track md:block">
                   <div className="flex gap-4 bg-surface-subtle px-4 py-2.5 font-mono text-[11px] text-ink-muted">
@@ -161,7 +166,10 @@ export default function Home() {
                 </ul>
               </FeatureCard>
 
-              <div className="flex flex-col gap-[18px] rounded-lg bg-accent p-5 text-white md:justify-between md:gap-7 md:p-7">
+              <div
+                className="flex flex-col gap-[18px] rounded-lg bg-accent p-5 text-white md:justify-between md:gap-7 md:p-7"
+                {...reveal(1)}
+              >
                 <CardHeading
                   index="02"
                   label="Weighted scoring"
@@ -187,7 +195,7 @@ export default function Home() {
                 </dl>
               </div>
 
-              <FeatureCard index="03" label="Plain-language summary" title="A short, actionable written summary." hideTitleOnMobile>
+              <FeatureCard index="03" label="Plain-language summary" title="A short, actionable written summary." hideTitleOnMobile revealOrder={0}>
                 <p className="m-0 text-sm leading-relaxed text-ink md:rounded md:border md:border-track md:bg-surface-subtle md:p-[18px] md:text-[15px]">
                   You match the core backend work and the payments domain well. A hiring manager will
                   probably notice that Kubernetes and Go are missing. It&apos;s worth applying. If you
@@ -200,6 +208,7 @@ export default function Home() {
                 label="History"
                 title="Past evaluations stay in your history."
                 className="lg:col-span-2"
+                revealOrder={1}
               >
                 <ul className="flex flex-col">
                   {HISTORY.map(({ score, title, company, date }) => (
@@ -230,12 +239,15 @@ export default function Home() {
 
         <section id="how" className="scroll-mt-4 border-t border-hairline">
           <div className={`${WRAP} flex flex-col gap-7 py-14 md:gap-12 md:py-24`}>
-            <h2 className={SECTION_HEADING}>How it works</h2>
+            <h2 className={SECTION_HEADING} {...reveal()}>
+              How it works
+            </h2>
             <ol className="grid grid-cols-1 gap-7 md:grid-cols-3 md:gap-5">
               {STEPS.map(({ title, description }, i) => (
                 <li
                   key={title}
                   className="flex flex-col gap-2.5 border-t-2 border-ink pt-4 md:gap-3.5 md:pt-5"
+                  {...reveal(i)}
                 >
                   <span className="font-mono text-xs text-accent-hover md:text-[13px]">
                     {String(i + 1).padStart(2, '0')}
@@ -252,7 +264,10 @@ export default function Home() {
 
         <section id="built" className="scroll-mt-4 bg-ink text-page">
           <div className={`${WRAP} flex flex-col gap-6 py-16 md:gap-14 md:py-[104px]`}>
-            <div className="flex flex-col gap-6 md:flex-row md:flex-wrap md:items-end md:justify-between md:gap-8">
+            <div
+              className="flex flex-col gap-6 md:flex-row md:flex-wrap md:items-end md:justify-between md:gap-8"
+              {...reveal()}
+            >
               <div className="flex max-w-[640px] flex-col gap-6 md:gap-4">
                 <span className="font-mono text-[11px] tracking-[0.04em] text-accent-soft md:text-xs">
                   HOW IT&apos;S BUILT
@@ -276,6 +291,7 @@ export default function Home() {
                           'flex flex-col gap-1.5 rounded border p-4 md:flex-1 md:gap-2.5 md:rounded-[14px] md:p-5',
                           isModel ? 'border-accent bg-accent/12' : 'border-white/10'
                         )}
+                        {...reveal(i * 2)}
                       >
                         <span
                           className={cn(
@@ -289,7 +305,11 @@ export default function Home() {
                         <span className="text-[13px] leading-normal text-page/70">{description}</span>
                       </div>
                       {!isModel && (
-                        <div className="flex shrink-0 items-center justify-center text-ink-secondary" aria-hidden="true">
+                        <div
+                          className="flex shrink-0 items-center justify-center text-ink-secondary"
+                          aria-hidden="true"
+                          {...reveal(i * 2 + 1)}
+                        >
                           <ArrowDown size={20} strokeWidth={1.6} className="md:hidden" />
                           <ArrowRight size={24} strokeWidth={1.6} className="hidden md:block" />
                         </div>
@@ -299,7 +319,7 @@ export default function Home() {
                 })}
               </div>
 
-              <ul className="flex flex-wrap gap-2 md:hidden">
+              <ul className="flex flex-wrap gap-2 md:hidden" {...reveal()}>
                 {INFRA.map(({ short }) => (
                   <li
                     key={short}
@@ -310,10 +330,11 @@ export default function Home() {
                 ))}
               </ul>
               <ul className="hidden gap-3 md:flex">
-                {INFRA.map(({ label, title }) => (
+                {INFRA.map(({ label, title }, i) => (
                   <li
                     key={label}
                     className="flex flex-1 flex-col gap-2.5 rounded-[14px] border border-white/10 p-5"
+                    {...reveal(i)}
                   >
                     <span className="font-mono text-[11px] text-page/50 uppercase">{label}</span>
                     <span className="text-[17px] font-semibold">{title}</span>
@@ -322,7 +343,10 @@ export default function Home() {
               </ul>
             </div>
 
-            <div className="flex flex-col gap-[18px] border-t border-white/10 pt-7 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-8 md:pt-10">
+            <div
+              className="flex flex-col gap-[18px] border-t border-white/10 pt-7 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-8 md:pt-10"
+              {...reveal()}
+            >
               <div className="flex items-center gap-3.5 md:flex-[1_1_420px] md:gap-[18px]">
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-accent font-display text-xl font-extrabold text-white md:size-14 md:text-[22px]">
                   M
@@ -347,7 +371,10 @@ export default function Home() {
           </div>
         </section>
 
-        <section className={`${WRAP} flex flex-col items-center gap-5 py-16 text-center md:gap-7 md:py-28`}>
+        <section
+          className={`${WRAP} flex flex-col items-center gap-5 py-16 text-center md:gap-7 md:py-28`}
+          {...reveal()}
+        >
           <h2 className="m-0 max-w-[720px] text-4xl leading-none font-extrabold tracking-[-0.035em] md:text-[56px]">
             Got a posting open in another tab?
           </h2>
@@ -381,8 +408,18 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      <ScrollReveal />
     </div>
   );
+}
+
+/** Opts an element into the scroll reveal; `order` staggers siblings that enter together. */
+function reveal(order = 0) {
+  return {
+    'data-reveal': '',
+    style: { '--reveal-delay': `${order * 90}ms` } as CSSProperties,
+  };
 }
 
 interface CardHeadingProps {
@@ -418,16 +455,18 @@ function CardHeading({ index, label, title, inverted = false, hideTitleOnMobile 
 
 interface FeatureCardProps extends Omit<CardHeadingProps, 'inverted'> {
   className?: string;
+  revealOrder?: number;
   children: ReactNode;
 }
 
-function FeatureCard({ className, children, ...heading }: FeatureCardProps) {
+function FeatureCard({ className, revealOrder, children, ...heading }: FeatureCardProps) {
   return (
     <div
       className={cn(
         'flex min-w-0 flex-col gap-3.5 rounded-lg border border-hairline bg-surface p-5 md:gap-5 md:p-7',
         className
       )}
+      {...reveal(revealOrder)}
     >
       <CardHeading {...heading} />
       {children}
